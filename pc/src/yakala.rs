@@ -185,12 +185,10 @@ pub mod win {
                         }
                     }
                     let oturum = o.oturum.load(Ordering::SeqCst);
-                    if WaitForSingleObject(olay, 20) == WAIT_TIMEOUT {
-                        // Windows sessizlikte loopback olayı üretmez.
-                        p.bos(oturum, &mut |x| o.ses_gonder(x));
-                        caliyor_bildir(o, &p, &mut son_bakis);
-                        continue;
-                    }
+                    // Windows sessizlikte loopback olayı üretmez. Bazı sürücüler olayı hiç üretmeyebilir:
+                    // zaman aşımında da tampona bakılır, gerçekten boşsa sessizlik sayılır.
+                    let zaman_asimi = WaitForSingleObject(olay, 20) == WAIT_TIMEOUT;
+                    let mut okunan = 0usize;
                     loop {
                         let n = yakalayici.GetNextPacketSize()?;
                         if n == 0 {
@@ -217,6 +215,10 @@ pub mod win {
                         stereo.clear();
                         stereoya(&f32_ara, b.kanal, &mut stereo);
                         p.ekle(&stereo, oturum, &mut |x| o.ses_gonder(x));
+                        okunan += kare as usize;
+                    }
+                    if zaman_asimi && okunan == 0 {
+                        p.bos(oturum, &mut |x| o.ses_gonder(x));
                     }
                     caliyor_bildir(o, &p, &mut son_bakis);
                 }
