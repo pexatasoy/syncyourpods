@@ -1,0 +1,152 @@
+name: SyncYourPods iOS
+
+# Tek koşu: simülatör ekran görüntüleri + Ad Hoc imzalı .ipa (doğrudan link ile kurulum).
+# ⚠️ Kaynak depodan DEĞİL sunucudan gelir (ios/yayinla-ios.sh); depoda yalnız bu tarif durur.
+# ⚠️ İmza: IMZA_P12 + IMZA_P12_PAROLA (takımın ortak dağıtım sertifikası), SYNC_PROFIL (Ad Hoc profili), TAKIM_ID.
+on:
+  workflow_dispatch:
+
+jobs:
+  derle:
+    runs-on: macos-26
+    steps:
+      - name: Kaynağı çek
+        run: |
+          curl -fsSL --retry 6 --retry-delay 5 --retry-all-errors \
+            --connect-timeout 20 --max-time 300 \
+            -H "Cache-Control: no-cache" -o kaynak.zip \
+            https://chainmedia.co/fotoyol/syp-6e171ad25b5a79638010/syncyourpods-kaynak.zip \
+            || { echo "Kaynak indirilemedi."; exit 1; }
+          unzip -oq kaynak.zip
+          cat DAMGA.txt
+          xcodebuild -version
+
+      - name: Xcode projesi
+        run: brew install xcodegen && xcodegen generate
+
+      # SwiftUI Linux'ta derlenmiyor; arayüzü GÖRMENİN tek yolu bu.
+      # DEBUG derlemesi -ornek (sahte bağlı durum), -telefonda ve -ekran (açılacak sayfa) bayraklarını okur.
+      - name: Simülatör ekran görüntüleri
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          if ! xcodebuild -project SyncYourPods.xcodeproj -scheme SyncYourPods \
+            -configuration Debug -sdk iphonesimulator -derivedDataPath sim \
+            CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build > sim.log 2>&1; then
+              echo "=============== SİMÜLATÖR DERLEME HATALARI ==============="
+              grep -E "error:" sim.log | sed "s|$PWD/||" | sort -u | head -60
+              exit 1
+          fi
+          UYG=$(find sim/Build/Products -name "SyncYourPods.app" -maxdepth 3 | head -1)
+          mkdir -p gorseller
+          UDID=$(xcrun simctl list devices available | grep -m1 "iPhone 17 Pro (" | grep -oE "[0-9A-F-]{36}") || true
+          [ -z "$UDID" ] && UDID=$(xcrun simctl list devices available | grep -m1 "iPhone" | grep -oE "[0-9A-F-]{36}")
+          xcrun simctl boot "$UDID" >/dev/null 2>&1 || true
+          xcrun simctl bootstatus "$UDID" -b >/dev/null 2>&1 || true
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --wifiBars 3 || true
+          xcrun simctl spawn "$UDID" defaults write -g AppleLanguages -array tr-TR || true
+          xcrun simctl spawn "$UDID" defaults write -g AppleLocale -string tr_TR || true
+          xcrun simctl install "$UDID" "$UYG"
+          cek() {
+            AD=$1; shift
+            xcrun simctl terminate "$UDID" com.atasoy.syncyourpods >/dev/null 2>&1 || true
+            xcrun simctl launch "$UDID" com.atasoy.syncyourpods "$@" >/dev/null 2>&1 || true
+            sleep 6
+            xcrun simctl io "$UDID" screenshot "gorseller/$AD.png" || true
+          }
+          cek 00-baslarken
+          cek 01-bagli-pc -ornek YES
+          cek 02-bagli-telefon -ornek YES -telefonda YES
+          for E in ayarlar ses ekolayzer gecis gecikme mikrofon tanilama gurultu bilgisayar; do cek "10-$E" -ornek YES -ekran $E; done
+          cek 20-ozel-eq -ornek YES -ekran ekolayzer -ozelEq YES
+          xcrun simctl ui "$UDID" appearance dark || true
+          cek 30-koyu-pc -ornek YES
+          cek 31-koyu-telefon -ornek YES -telefonda YES
+          cek 32-koyu-ayarlar -ornek YES -ekran ayarlar
+          cek 33-koyu-baslarken
+          xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "SyncYourPods"' --style compact 2>/dev/null \
+            | grep -iE "fatal|crash|error|exception" | tail -60 > gorseller/simulator-gunlugu.txt || true
+
+      - name: Ekran görüntülerini sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ekran-goruntuleri
+          path: gorseller/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: İmza malzemesini kur
+        env:
+          P12: ${{ secrets.IMZA_P12 }}
+          P12_PAROLA: ${{ secrets.IMZA_P12_PAROLA }}
+          PROFIL: ${{ secrets.SYNC_PROFIL }}
+        run: |
+          ZINCIR=$RUNNER_TEMP/imza.keychain-db
+          ZP=$(openssl rand -base64 24)
+          security create-keychain -p "$ZP" "$ZINCIR"
+          security set-keychain-settings -lut 21600 "$ZINCIR"
+          security unlock-keychain -p "$ZP" "$ZINCIR"
+          echo "$P12" | base64 --decode > $RUNNER_TEMP/dagitim.p12
+          security import $RUNNER_TEMP/dagitim.p12 -P "$P12_PAROLA" -A -t cert -f pkcs12 -k "$ZINCIR"
+          # ⚠️ Bu satır olmazsa codesign parola sorup sessizce takılır.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$ZP" "$ZINCIR" > /dev/null
+          security list-keychain -d user -s "$ZINCIR" login.keychain-db
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFIL" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/syncyourpods.mobileprovision
+
+      - name: Arşivle (Ad Hoc)
+        run: |
+          set -o pipefail
+          if ! xcodebuild archive -project SyncYourPods.xcodeproj -scheme SyncYourPods \
+            -configuration Release -sdk iphoneos -archivePath $RUNNER_TEMP/SyncYourPods.xcarchive \
+            DEVELOPMENT_TEAM=${{ secrets.TAKIM_ID }} \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} > arsiv.log 2>&1; then
+              echo "=============== ARŞİV HATALARI ==============="
+              grep -E "error:" arsiv.log | sed "s|$PWD/||" | sort -u | head -60
+              exit 1
+          fi
+          cat > $RUNNER_TEMP/disari.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>release-testing</string>
+            <key>teamID</key><string>${{ secrets.TAKIM_ID }}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key><dict>
+              <key>com.atasoy.syncyourpods</key><string>SyncYourPods Ad Hoc</string>
+            </dict>
+            <key>compileBitcode</key><false/>
+            <key>thinning</key><string>&lt;none&gt;</string>
+          </dict></plist>
+          PLIST
+          if ! xcodebuild -exportArchive -archivePath $RUNNER_TEMP/SyncYourPods.xcarchive \
+            -exportPath cikti -exportOptionsPlist $RUNNER_TEMP/disari.plist > cikar.log 2>&1; then
+              echo "=============== ÇIKARMA HATALARI ==============="
+              grep -E "error:|Error" cikar.log | sort -u | head -40
+              exit 1
+          fi
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $RUNNER_TEMP/SyncYourPods.xcarchive/Products/Applications/SyncYourPods.app/Info.plist > cikti/derleme.txt
+          ls -lh cikti/
+          echo "✅ ipa hazır (derleme ${{ github.run_number }})"
+
+      - name: ipa'yı sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: syncyourpods-ipa
+          path: cikti/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Günlükleri sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gunlukler
+          path: |
+            sim.log
+            arsiv.log
+            cikar.log
+          retention-days: 7
+          if-no-files-found: ignore

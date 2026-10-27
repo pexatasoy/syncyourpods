@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SyncYourPods</title>
+<meta name="description" content="Bluetooth’u olmayan bilgisayarın sesini iPhone üzerinden AirPods’a taşır.">
+<meta name="robots" content="noindex">
+<link rel="apple-touch-icon" href="simge.png">
+<link rel="icon" href="simge.png">
+<style>
+  :root {
+    --zemin: #f5f5f7; --kart: #ffffff; --yazi: #1d1d1f; --ikincil: #6e6e73; --cizgi: rgba(0,0,0,.08);
+    --mavi: #0a84ff; --indigo: #5e5ce6; --turuncu: #ff9f0a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --zemin: #000; --kart: #1c1c1e; --yazi: #f5f5f7; --ikincil: #98989d; --cizgi: rgba(255,255,255,.1); }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--zemin); color: var(--yazi);
+    font: 17px/1.47 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; padding: 0 16px;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 56px 0 72px; }
+  header { text-align: center; }
+  header img { width: 112px; height: 112px; border-radius: 26px; box-shadow: 0 12px 32px rgba(10,132,255,.28); }
+  h1 { font: 700 clamp(40px, 7vw, 64px)/1.05 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif; letter-spacing: -.02em; margin-top: 22px; }
+  .slogan { font-size: clamp(19px, 2.6vw, 24px); color: var(--ikincil); margin-top: 10px; letter-spacing: -.005em; }
+  .zincir { display: flex; align-items: center; justify-content: center; gap: 0; margin: 44px auto 8px; max-width: 520px; }
+  .dugum { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; color: var(--ikincil); width: 84px; }
+  .dugum span.y { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--kart); border: 1px solid var(--cizgi); }
+  .dugum svg { width: 26px; height: 26px; stroke: var(--yazi); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .hat { flex: 1; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--mavi) 22%, transparent); position: relative; overflow: hidden; margin-bottom: 26px; }
+  .hat i { position: absolute; top: -1.5px; width: 6px; height: 6px; border-radius: 50%; background: var(--mavi); animation: ak 1.4s linear infinite; }
+  .hat i:nth-child(2) { animation-delay: -.47s } .hat i:nth-child(3) { animation-delay: -.93s }
+  @keyframes ak { from { left: -6px; opacity: 0 } 20% { opacity: 1 } 80% { opacity: 1 } to { left: 100%; opacity: 0 } }
+  @media (prefers-reduced-motion: reduce) { .hat i { animation: none; display: none } }
+  .indir { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
+  @media (max-width: 720px) { .indir { grid-template-columns: 1fr } }
+  .kart { background: var(--kart); border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .kart h2 { font-size: 24px; letter-spacing: -.01em; }
+  .kart .alt { color: var(--ikincil); font-size: 15px; }
+  .dugme { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--mavi); color: #fff; text-decoration: none; font-weight: 600; font-size: 17px; padding: 13px 22px; border-radius: 980px; align-self: flex-start; transition: filter .15s; }
+  .dugme:hover { filter: brightness(1.08) }
+  .dugme.ikincil { background: color-mix(in srgb, var(--mavi) 12%, transparent); color: var(--mavi); }
+  ol { padding-left: 0; list-style: none; counter-reset: a; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+  ol li { counter-increment: a; display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
+  ol li::before { content: counter(a); width: 22px; height: 22px; border-radius: 50%; background: var(--mavi); color: #fff; font: 700 12px/22px -apple-system, sans-serif; text-align: center; margin-top: 1px; }
+  .not { font-size: 13px; color: var(--ikincil); }
+  .ozellikler { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
+  @media (max-width: 720px) { .ozellikler { grid-template-columns: 1fr } }
+  .ozellik { background: var(--kart); border-radius: 22px; padding: 24px; }
+  .ozellik b { display: block; font-size: 17px; margin-bottom: 4px; }
+  .ozellik p { color: var(--ikincil); font-size: 15px; }
+  .ozellik .r { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-bottom: 12px; }
+  footer { text-align: center; color: var(--ikincil); font-size: 13px; margin-top: 56px; }
+  .surum { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="simge.png" alt="">
+    <h1>SyncYourPods</h1>
+    <p class="slogan">Bilgisayarın sesi, AirPods’unda.<br>Bluetooth olmadan.</p>
+    <div class="zincir" aria-hidden="true">
+      <div class="dugum"><span class="y"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>Bilgisayar</div>
+      <div class="hat"><i></i><i></i><i></i></div>
+      <div class="dugum"><span class="y"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span>iPhone</div>
+      <div class="hat"><i></i><i></i><i></i></div>
+      <div class="dugum"><span class="y"><svg viewBox="0 0 24 24"><path d="M7.5 4.5a3 3 0 0 1 3 3v2a3 3 0 0 1-1.6 2.6V19a1.4 1.4 0 0 1-2.8 0v-7a3 3 0 0 1 1.4-7.5zM16.5 4.5a3 3 0 0 0-3 3v2a3 3 0 0 0 1.6 2.6V19a1.4 1.4 0 0 0 2.8 0v-7a3 3 0 0 0-1.4-7.5z"/></svg></span>AirPods</div>
+    </div>
+  </header>
+
+  <section class="indir">
+    <div class="kart">
+      <h2>iPhone</h2>
+      <p class="alt">Bu sayfayı iPhone’da <b>Safari</b> ile aç ve dokun.</p>
+      <a class="dugme" id="ios" href="#">iPhone’a yükle</a>
+      <ol>
+        <li><span>“Yükle”ye dokun, ana ekranda simgenin dolmasını bekle.</span></li>
+        <li><span>İlk açılışta “yerel ağ” iznine <b>İzin Ver</b> de.</span></li>
+      </ol>
+      <p class="not">Yalnız kayıtlı iPhone’lara kurulur. <span class="surum" id="ios-surum"></span></p>
+    </div>
+    <div class="kart">
+      <h2>Windows</h2>
+      <p class="alt">Windows 10 ve 11. Kurulum yok, tek dosya (1,5 MB).</p>
+      <a class="dugme" href="SyncYourPods.exe" download>Windows için indir</a>
+      <ol>
+        <li><span>Dosyayı aç. “Windows bilgisayarınızı korudu” derse <b>Ek bilgi → Yine de çalıştır</b>.</span></li>
+        <li><span>Güvenlik duvarı sorarsa <b>Özel ağlar</b>a izin ver.</span></li>
+        <li><span>iPhone ilk bağlandığında çıkan pencerede <b>Evet</b> de. Saatin yanındaki simgeden yönetilir.</span></li>
+      </ol>
+      <p class="not">Bilgisayar açıldığında kendiliğinden başlar; tepsi menüsünden kapatılabilir.</p>
+    </div>
+  </section>
+
+  <section class="ozellikler">
+    <div class="ozellik"><span class="r" style="background:var(--turuncu)"></span><b>Kendiliğinden geçiş</b><p>iPhone’da video başlayınca AirPods ona geçer, bilgisayardaki medya duraklar. Bitince bilgisayar kaldığı yerden sürer.</p></div>
+    <div class="ozellik"><span class="r" style="background:var(--mavi)"></span><b>Düşük gecikme</b><p>Sıkıştırmasız ses, kendini ağa göre ayarlayan tampon. Bilgisayarda neredeyse hiç işlemci harcamaz.</p></div>
+    <div class="ozellik"><span class="r" style="background:var(--indigo)"></span><b>Ekolayzer ve mikrofon</b><p>Hazır ve özel ekolayzer, ses yükseltici, denge, mono. AirPods mikrofonu bilgisayardaki görüşmelerde.</p></div>
+  </section>
+
+  <footer>Ses yalnız evinin ağında dolaşır; hiçbir sunucuya gitmez.</footer>
+</main>
+<script>
+  // itms-services bağlantısı mutlak adres ister.
+  const taban = location.href.replace(/[^/]*([?#].*)?$/, "");
+  document.getElementById("ios").href = "itms-services://?action=download-manifest&url=" + encodeURIComponent(taban + "manifest.plist");
+  fetch("surum.txt", { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(t => {
+    if (t.trim()) document.getElementById("ios-surum").textContent = "Sürüm " + t.trim() + ".";
+  }).catch(() => {});
+</script>
+</body>
+</html>

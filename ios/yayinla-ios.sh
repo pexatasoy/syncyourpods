@@ -1,0 +1,32 @@
+#!/bin/bash
+# Kaynağı toparlayıp derleme hattının çekeceği zip'i yayınlar (Medowl düzeninin aynısı).
+#   ./yayinla-ios.sh  →  https://chainmedia.co/fotoyol/<ci/.zip-dizini>/syncyourpods-kaynak.zip
+# Sonra: ci/kos.sh tetikle && ci/kos.sh bekle && ci/kos.sh indir
+# ⚠️ Kaynak GitHub deposunda DEĞİL burada; depoda yalnız iş akışı tarifi var.
+set -e
+KOK="$(cd "$(dirname "$0")" && pwd)"
+cd "$KOK"
+export PATH=/opt/swift/usr/bin:$PATH
+
+echo "→ çekirdek testleri"
+(cd Cekirdek && swift test >/dev/null 2>&1) || { echo "❌ çekirdek testleri geçmedi"; (cd Cekirdek && swift test 2>&1 | grep -E "error" | head); exit 1; }
+echo "   ✓ geçti"
+
+echo "→ söz dizimi denetimi"
+HATA=0
+while IFS= read -r f; do
+  swiftc -parse "$f" >/dev/null 2>/tmp/syp-parse.err || { echo "söz dizimi hatası: $f"; sed -n 1,6p /tmp/syp-parse.err; HATA=1; }
+done < <(find SyncYourPods -name "*.swift")
+[ "$HATA" = 1 ] && exit 1
+echo "   ✓ $(find SyncYourPods -name '*.swift' | wc -l) dosya temiz"
+
+date -u '+%Y-%m-%d %H:%M UTC' > DAMGA.txt
+git -C "$KOK" rev-parse --short HEAD 2>/dev/null >> DAMGA.txt || true
+
+DIZIN=$(cat ci/.zip-dizini)
+HEDEF=/var/www/fotoyol/$DIZIN
+mkdir -p "$HEDEF"
+rm -f "$HEDEF/syncyourpods-kaynak.zip"
+zip -qr "$HEDEF/syncyourpods-kaynak.zip" SyncYourPods Destek Cekirdek project.yml DAMGA.txt -x "Cekirdek/.build/*"
+ls -lh "$HEDEF/syncyourpods-kaynak.zip"
+echo "✅ hazır: https://chainmedia.co/fotoyol/$DIZIN/syncyourpods-kaynak.zip"

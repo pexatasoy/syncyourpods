@@ -1,0 +1,59 @@
+# XcodeGen tarifi — .xcodeproj bundan üretilir, elle kurcalanmaz.
+# Derleme GitHub'ın macOS koşucusunda (ci/syncyourpods.yml). Çekirdek mantık Cekirdek/ paketinde (Linux'ta swift test).
+name: SyncYourPods
+options:
+  bundleIdPrefix: com.atasoy
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  developmentLanguage: tr
+
+packages:
+  Cekirdek:
+    path: Cekirdek
+
+targets:
+  SyncYourPods:
+    type: application
+    platform: iOS
+    sources:
+      - path: SyncYourPods
+    dependencies:
+      - package: Cekirdek
+        product: Cekirdek
+    info:
+      path: Destek/Info.plist
+      properties:
+        CFBundleLocalizations: [tr]
+        # Arka planda ses: PC sesi telefon kilitliyken de akar.
+        UIBackgroundModes: [audio]
+        # Bonjour: ağdaki PC'yi bulmak için (çoklu yayın yetkisi GEREKMEZ).
+        NSBonjourServices: [_syncpods._tcp]
+        NSLocalNetworkUsageDescription: "Aynı ağdaki bilgisayarı bulup sesini AirPods’a taşımak için. Ses yalnız evinin ağında dolaşır."
+        NSMicrophoneUsageDescription: "AirPods mikrofonunu bilgisayardaki görüşmelerde kullanabilmen için. Yalnız mikrofonu açtığında dinlenir."
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        # ⚠️ BİR KEZ SEÇİLDİ, DEĞİŞMEZ (Ad Hoc profili buna bağlı).
+        PRODUCT_BUNDLE_IDENTIFIER: com.atasoy.syncyourpods
+        PRODUCT_NAME: SyncYourPods
+        DEVELOPMENT_TEAM: 225UD67593
+        MARKETING_VERSION: "1.0.0"
+        # ⚠️ CI bunu koşu numarasıyla ezer.
+        CURRENT_PROJECT_VERSION: "1"
+        # Swift 5 kipi: Xcode 26'nın Swift 6 katı eşzamanlılık kipi ek hata üretir (Medowl/teamplanOS'ta görüldü).
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_CFBundleDisplayName: SyncYourPods
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          PROVISIONING_PROFILE_SPECIFIER: "SyncYourPods Ad Hoc"
