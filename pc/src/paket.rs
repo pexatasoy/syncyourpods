@@ -101,12 +101,36 @@ impl Paketleyici {
     }
 }
 
+thread_local! {
+    static TOHUM: std::cell::Cell<u32> = const { std::cell::Cell::new(0x9E37_79B9) };
+}
+
+/// [0, 1) aralığında hızlı sözde rastgele sayı (xorshift).
+fn rastgele() -> f32 {
+    TOHUM.with(|t| {
+        let mut x = t.get();
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        t.set(x);
+        (x >> 8) as f32 / (1u32 << 24) as f32
+    })
+}
+
 /// Aygıtın karışım biçimindeki (çoğunlukla float32, 2+ kanal) sesi stereo s16'ya çevirir.
 /// 5.1/7.1: orta kanal ve arka kanallar sol/sağa katılır.
 pub fn stereoya(girdi_f32: &[f32], kanal: usize, cikti: &mut Vec<i16>) {
     let kare = girdi_f32.len() / kanal.max(1);
     cikti.reserve(kare * 2);
-    let sik = |x: f32| (x.clamp(-1.0, 1.0) * 32767.0) as i16;
+    // 32 bit → 16 bit: üçgen dağılımlı (TPDF) dither. Kesip atmak kısık yerlerde pürüz bırakır; ±1 basamaklık
+    // duyulmaz gürültü bunu düzgün bir taban gürültüsüne çevirir. Tam sessizliğe dokunulmaz (sessizlik algısı bozulmasın).
+    let sik = |x: f32| -> i16 {
+        if x == 0.0 {
+            return 0;
+        }
+        let d = (rastgele() + rastgele() - 1.0) / 32768.0;
+        ((x + d).clamp(-1.0, 1.0) * 32767.0).round() as i16
+    };
     for k in 0..kare {
         let f = &girdi_f32[k * kanal..(k + 1) * kanal];
         let (l, r) = match kanal {
@@ -168,6 +192,16 @@ mod testler {
         p.ekle(&ses, 1, &mut |b| turler.push(Baslik::oku(b).unwrap().tur));
         assert_eq!(turler, vec![Tur::Ses]);
         assert!(p.caliyor());
+    }
+
+    #[test]
+    fn dither_sessizligi_bozmaz() {
+        let mut c = Vec::new();
+        stereoya(&[0.0; 64], 2, &mut c);
+        assert!(c.iter().all(|x| *x == 0));
+        c.clear();
+        stereoya(&[0.25; 64], 2, &mut c);
+        assert!(c.iter().all(|x| (*x as i32 - 8192).abs() <= 2));
     }
 
     #[test]

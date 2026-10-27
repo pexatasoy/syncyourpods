@@ -18,7 +18,7 @@ public enum GecikmeModu: String, Codable, CaseIterable, Sendable {
     /// Tamponun en az tutacağı ses (ms).
     public var taban: Double { switch self { case .enDusuk: 15; case .dengeli: 35; case .kararli: 80 } }
     /// Ağ ne kadar kötü olursa olsun tamponun çıkabileceği en üst sınır (ms).
-    public var tavan: Double { switch self { case .enDusuk: 60; case .dengeli: 120; case .kararli: 250 } }
+    public var tavan: Double { switch self { case .enDusuk: 100; case .dengeli: 150; case .kararli: 300 } }
 }
 
 public enum TamponDurumu: String, Sendable {
@@ -74,6 +74,9 @@ public final class SesTamponu {
     private var dolulukOrt = 0.0
     private var ayar = 0.0
     private var titreme = 0.0 // sn
+    /// iOS'un istediği en büyük ses bloğu (kare). Ekran kilitlenince 5 ms'den ~21 ms'ye çıkar;
+    /// tampon en az bunun biraz üstünde tutulmazsa her blokta boşalır (cızırtı).
+    private var blok = 0.0
     private var zamanTaban = Double.greatestFiniteMagnitude
 
     public init(cikisHizi: Double = 48000, mod: GecikmeModu = .dengeli) {
@@ -184,7 +187,8 @@ public final class SesTamponu {
     }
 
     private func hedefiGuncelle() {
-        let ms = min(mod.tavan, max(mod.taban, titreme * 1000 * 1.2 + 6))
+        let blokMs = blok / cikisHizi * 1000 * 1.3 + 3
+        let ms = max(blokMs, min(mod.tavan, max(mod.taban, titreme * 1000 * 1.2 + 6)))
         hedefKare = ms / 1000 * cikisHizi
         ist.hedefMs = ms
         ist.titremeMs = titreme * 1000
@@ -199,6 +203,12 @@ public final class SesTamponu {
             ist.durum = .bos
             return
         }
+        if Double(n) > blok {
+            blok = Double(n)
+            hedefiGuncelle()
+        } else {
+            blok = max(Double(n), blok * 0.9995)
+        }
         let oran = girisHizi / cikisHizi
         let bekleyen = bekleyenParca()
         let doluluk = Double(akisSay + bekleyen * kare) / oran - konum / oran
@@ -212,30 +222,36 @@ public final class SesTamponu {
             }
         }
 
-        // Saat kayması denetimi. Atlama, okumadan ÖNCE: o an çalınacak sesi atmasın.
+        // Saat kayması + fazla dolulukta yavaşça yetişme. Ses ATILMAZ (atmak "mer..ba" gibi hece yutar):
+        // fazla, okuma binde birkaç hızlandırılarak eritilir. Yalnız çok büyük takılmada (≥150 ms fazla) atlanır.
         dolulukOrt = dolulukOrt * 0.98 + doluluk * 0.02
         let hata = (dolulukOrt - hedefKare) / max(hedefKare, 1)
-        ayar = max(-0.003, min(0.003, hata * 0.004))
-        if doluluk > hedefKare * 2.5 + cikisHizi * 0.02 {
+        let sinir = hata > 1 ? 0.008 : 0.003
+        ayar = max(-sinir, min(sinir, hata * 0.004))
+        if doluluk > hedefKare + max(hedefKare * 2, cikisHizi * 0.15) {
             atla(hedef: max(hedefKare, Double(n) * 2))
         }
         let adim = oran * (1 + ayar)
-        let gereken = Int((Double(n) * adim + konum).rounded(.up)) + 2
+        let gereken = Int((Double(n) * adim + konum).rounded(.up)) + 4
         doldur(gereken)
 
+        // Dört noktalı (Catmull-Rom) ara değerleme: doğrusala göre tizler kısılmaz, 44,1→48 kHz dönüşümü temiz.
         var i = 0
         while i < n {
             let k = Int(konum)
-            if k + 1 >= akisSay { break }
+            if k + 2 >= akisSay { break }
             let f = Float(konum - Double(k))
-            let a = ((akisBas + k) % akisKapasite) * 2
-            let b = ((akisBas + k + 1) % akisKapasite) * 2
-            sol[i] = akis[a] + (akis[b] - akis[a]) * f
-            sag[i] = akis[a + 1] + (akis[b + 1] - akis[a + 1]) * f
+            let i0 = ((akisBas + max(k - 1, 0)) % akisKapasite) * 2
+            let i1 = ((akisBas + k) % akisKapasite) * 2
+            let i2 = ((akisBas + k + 1) % akisKapasite) * 2
+            let i3 = ((akisBas + k + 2) % akisKapasite) * 2
+            sol[i] = Self.kubik(akis[i0], akis[i1], akis[i2], akis[i3], f)
+            sag[i] = Self.kubik(akis[i0 + 1], akis[i1 + 1], akis[i2 + 1], akis[i3 + 1], f)
             konum += adim
             i += 1
         }
-        let tuketilen = min(Int(konum), akisSay)
+        // Bir önceki kare ara değerleme için tutulur.
+        let tuketilen = max(0, min(Int(konum) - 1, akisSay))
         akisBas = (akisBas + tuketilen) % akisKapasite
         akisSay -= tuketilen
         konum -= Double(tuketilen)
@@ -251,13 +267,18 @@ public final class SesTamponu {
             sifirYaz(n, sol, sag, from: i)
             if !bosta {
                 ist.bosalma += 1
-                titreme = min(mod.tavan / 1000, titreme + 0.010)
+                titreme = min(mod.tavan / 1000, titreme + 0.015)
                 hedefiGuncelle()
             }
             durum = bosta ? .bos : .doluyor
             if durum == .bos { akisVar = false }
         }
         istGuncelle(doluluk)
+    }
+
+    @inline(__always)
+    static func kubik(_ p0: Float, _ p1: Float, _ p2: Float, _ p3: Float, _ f: Float) -> Float {
+        p1 + 0.5 * f * (p2 - p0 + f * (2 * p0 - 5 * p1 + 4 * p2 - p3 + f * (3 * (p1 - p2) + p3 - p0)))
     }
 
     private func bekleyenParca() -> Int {

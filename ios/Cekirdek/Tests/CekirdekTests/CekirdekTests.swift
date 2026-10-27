@@ -143,6 +143,46 @@ final class TamponTestleri: XCTestCase {
         XCTAssertLessThan(t.ist.tamponMs, 100)
     }
 
+    /// Ekran kilitlenince iOS 1024 karelik bloklarla ister: tampon buna uyar, sürekli boşalmaz.
+    func testBuyukBlok() {
+        let t = SesTamponu(cikisHizi: 48000, mod: .enDusuk)
+        var pc = SahtePC()
+        var uret = 0.0, oku = 0.0
+        for _ in 0..<6000 {
+            if uret <= oku + 0.06 { ver(t, pc.paket { _ in 900 }, uret); uret += 160 / 48000.0 }
+            if oku < uret - 0.04 { _ = cek(t, 1024); oku += 1024 / 48000.0 }
+        }
+        XCTAssertLessThanOrEqual(t.ist.bosalma, 1, "\(t.ist)")
+        XCTAssertGreaterThan(t.ist.hedefMs, 1024 / 48.0)
+    }
+
+    /// Wi-Fi 80 ms takılıp paketleri topluca verir: ses ATILMAZ (hece yutulmaz).
+    func testTopluGelisAtlamaz() {
+        let t = SesTamponu(cikisHizi: 48000, mod: .enDusuk)
+        var pc = SahtePC()
+        var zaman = 0.0, oku = 0.0
+        var bekleyenler: [[UInt8]] = []
+        for adim in 0..<3000 {
+            let p = pc.paket { _ in 800 }
+            zaman += 160 / 48000.0
+            // her 2 sn'de bir 80 ms takılma
+            let takili = (adim % 600) >= 576
+            if takili { bekleyenler.append(p) } else {
+                for b in bekleyenler { ver(t, b, zaman) }
+                bekleyenler.removeAll()
+                ver(t, p, zaman)
+            }
+            while oku < zaman - 0.02 { _ = cek(t, 240); oku += 240 / 48000.0 }
+        }
+        XCTAssertEqual(t.ist.atlama, 0, "\(t.ist)")
+    }
+
+    /// Kübik ara değerleme doğruyu birebir verir.
+    func testKubik() {
+        XCTAssertEqual(SesTamponu.kubik(0, 1, 2, 3, 0.5), 1.5, accuracy: 1e-6)
+        XCTAssertEqual(SesTamponu.kubik(5, 7, 9, 11, 0), 7, accuracy: 1e-6)
+    }
+
     /// 44,1 kHz PC: çıkış 48 kHz'e çevrilir, kesinti olmaz.
     func testHizCevirme() {
         let t = SesTamponu(cikisHizi: 48000, mod: .dengeli)

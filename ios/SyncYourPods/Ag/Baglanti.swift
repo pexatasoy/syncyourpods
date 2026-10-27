@@ -65,6 +65,7 @@ final class Baglanti {
     private var gelen = Data()
     private var oturum: UInt32 = 0
     private var zamanlayici: DispatchSourceTimer?
+    private var uyandirici: DispatchSourceTimer?
     private var sonPong = Date()
     private var bitti = false
 
@@ -125,6 +126,7 @@ final class Baglanti {
         guard !bitti else { return }
         bitti = true
         zamanlayici?.cancel()
+        uyandirici?.cancel()
         udp?.cancel()
         tcp.cancel()
         bildir(.koptu(neden))
@@ -192,6 +194,15 @@ final class Baglanti {
         }
         z.resume()
         zamanlayici = z
+
+        // Wi-Fi'ı uyanık tut: ekran kapalıyken iPhone'un Wi-Fi'ı güç tasarrufuna geçer ve gelen paketleri
+        // ~100 ms'lik yığınlar hâlinde alır (sesin takılması). Görüntülü arama uygulamaları gibi 20 ms'de bir
+        // minik paket (24 bayt) yollamak, erişim noktasının bekleyen paketleri hemen teslim etmesini sağlar.
+        let u2 = DispatchSource.makeTimerSource(queue: kuyruk)
+        u2.schedule(deadline: .now() + 0.02, repeating: 0.02, leeway: .milliseconds(2))
+        u2.setEventHandler { [weak self] in self?.punch() }
+        u2.resume()
+        uyandirici = u2
     }
 
     private func punch() {
