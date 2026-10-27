@@ -414,6 +414,7 @@ final class Denetci {
         let u = UserDefaults.standard
         durum = .bagli("EFE-PC")
         pcAdi = "EFE-PC"
+        bulunanlar = [BulunanPC(id: "ornek", ad: "EFE-PC", uc: .hostPort(host: "192.168.1.20", port: 47800))]
         pc = PCDurumu(playing: true, device: "Hoparlör (Realtek Audio)", title: "lofi hip hop radio – beats to relax/study to",
                       artist: "Lofi Girl", app: "Chrome", pauseMedia: true)
         rota = Rota(ad: "Efe’nin AirPods Pro’su", simge: "airpodspro", kulaklik: true)

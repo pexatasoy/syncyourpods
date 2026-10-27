@@ -123,12 +123,12 @@ struct SesEkrani: View {
                         Text(dengeMetni).foregroundStyle(.secondary).monospacedDigit()
                     }
                     HStack(spacing: 12) {
-                        Text("S").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                        Text("Sol").font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                         Slider(value: Binding(get: { d.ayarlar.denge }, set: { y in
                             // Ortaya yakınsa ortaya otur.
                             d.ayarlar.denge = abs(y) < 0.06 ? 0 : y
                         }), in: -1...1)
-                        Text("Sğ").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                        Text("Sağ").font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
@@ -186,32 +186,7 @@ struct EkolayzerEkrani: View {
                 }
             }
 
-            Section("Hazır ayarlar") {
-                ForEach(Ekolayzer.hazirlar) { h in
-                    Button {
-                        d.ayarlar.eqHazir = h.id
-                        d.ayarlar.eqAcik = true
-                    } label: {
-                        HStack {
-                            Text(h.ad).foregroundStyle(.primary)
-                            Spacer()
-                            if d.ayarlar.eqHazir == h.id { Image(systemName: "checkmark").foregroundStyle(.indigo).fontWeight(.semibold) }
-                        }
-                    }
-                }
-                Button {
-                    if d.ayarlar.eqHazir != "ozel" { d.ayarlar.eqOzel = d.ayarlar.eqKazanclari }
-                    d.ayarlar.eqHazir = "ozel"
-                    d.ayarlar.eqAcik = true
-                } label: {
-                    HStack {
-                        Text("Özel").foregroundStyle(.primary)
-                        Spacer()
-                        if d.ayarlar.eqHazir == "ozel" { Image(systemName: "checkmark").foregroundStyle(.indigo).fontWeight(.semibold) }
-                    }
-                }
-            }
-
+            // Özel seçiliyse kaydırıcılar eğrinin hemen altında: kaydırmadan görülsün.
             if d.ayarlar.eqHazir == "ozel" {
                 Section {
                     HStack(alignment: .bottom, spacing: 0) {
@@ -231,9 +206,35 @@ struct EkolayzerEkrani: View {
                     Text("±12 dB. Kırpılmayı önlemek için yükselttiğin kadar genel ses kendiliğinden biraz kısılır.")
                 }
             }
+
+            Section("Hazır ayarlar") {
+                ForEach(Ekolayzer.hazirlar) { h in
+                    secenek(h.ad, secili: d.ayarlar.eqHazir == h.id) {
+                        d.ayarlar.eqHazir = h.id
+                        d.ayarlar.eqAcik = true
+                    }
+                }
+                secenek("Özel", secili: d.ayarlar.eqHazir == "ozel") {
+                    if d.ayarlar.eqHazir != "ozel" { d.ayarlar.eqOzel = d.ayarlar.eqKazanclari }
+                    d.ayarlar.eqHazir = "ozel"
+                    d.ayarlar.eqAcik = true
+                }
+            }
         }
         .navigationTitle("Ekolayzer")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func secenek(_ ad: String, secili: Bool, sec: @escaping () -> Void) -> some View {
+        Button(action: { withAnimation(.smooth) { sec() } }) {
+            HStack {
+                Text(ad).foregroundStyle(.primary)
+                Spacer()
+                if secili { Image(systemName: "checkmark").foregroundStyle(.indigo).fontWeight(.semibold) }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

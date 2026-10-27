@@ -44,5 +44,16 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 - `ios/SyncYourPods` — SwiftUI uygulaması; derleme GitHub macOS koşucusunda (Medowl hattının kopyası, Ad Hoc dışa aktarma)
 - `site/` — indirme sayfası (iPhone kurulum linki + Windows programı)
 
+## Adresler / komutlar
+- İndirme sayfası: https://chainmedia.co/fotoyol/<site/.site-dizini>/ (`site/yayinla.sh`) — iPhone itms-services + Windows exe
+- iOS kaynak zip'i: `ios/yayinla-ios.sh` → `ios/ci/kos.sh tetikle|bekle|hata|indir` (depo pexatasoy/fotoaktar-masaustu, akış `syncyourpods.yml`)
+- Ad Hoc profil: `ios/ci/adhoc_kur.py kur|yenile` → /root/.asc/syncyourpods-adhoc.mobileprovision → `ci/kos.sh sir` (gizli SYNC_PROFIL)
+  ⚠️ `sir` (GitHub gizli değişkeni yazma) otomatik kipte engellendi → Efe onayı/elle.
+- Uçtan uca deneme (Linux): `cd pc && cargo run &` sonra `python3 araclar/sahte_telefon.py` ya da `cd ios/Cekirdek && swift run uctanuca`
+- PC günlüğü: %APPDATA%\SyncYourPods\gunluk.txt (tepsi → Günlüğü aç)
+
 ## ▶ KALDIĞIMIZ YER
-- 2026-10-27: iskelet + protokol.
+- 2026-10-27: Windows programı + çekirdek + iPhone uygulaması + indirme sayfası yazıldı. Rust testleri, Swift çekirdek
+  testleri (12) ve Rust↔Swift uçtan uca deneme geçti. iPhone derlemesi CI'da; imza için SYNC_PROFIL gizli değişkeni bekleniyor.
+- Gerçek cihazda doğrulanacak: (1) hint arka planda geliyor mu (Tanılama ekranı), (2) gecikme/kesinti, (3) WASAPI loopback
+  gerçek PC'de, (4) VB-CABLE mikrofonu, (5) medya duraklat/sürdür (Chrome/Spotify).
