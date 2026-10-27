@@ -11,7 +11,7 @@ ADRES="https://chainmedia.co/fotoyol/$DIZIN"
 mkdir -p "$HEDEF"
 cp "$KOK/index.html" "$KOK/simge.png" "$KOK/simge-57.png" "$HEDEF/"
 
-EXE=/root/syncyourpods/pc/target/x86_64-pc-windows-gnu/release/syncyourpods.exe
+EXE=/root/syncyourpods/pc/msvc/SyncYourPods.exe  # GitHub Windows koşucusunda MSVC ile derlenir (pc/ci-windows.yml)
 [ -f "$EXE" ] && cp "$EXE" "$HEDEF/SyncYourPods.exe" && echo "Windows: $(du -h "$HEDEF/SyncYourPods.exe" | cut -f1)"
 
 IPA=$(ls /root/syncyourpods/ios/cikti/*.ipa 2>/dev/null | head -1)

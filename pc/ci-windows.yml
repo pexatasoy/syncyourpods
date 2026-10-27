@@ -1,0 +1,51 @@
+name: SyncYourPods Windows
+
+# MSVC derlemesi + Windows Defender taraması (MinGW sürümü Opera/Defender'a takıldı, 2026-10-27).
+# ⚠️ Kaynak sunucudan gelir (pc/ zip'i); depoda yalnız bu tarif durur.
+on:
+  workflow_dispatch:
+
+jobs:
+  derle:
+    runs-on: windows-latest
+    steps:
+      - name: Kaynağı çek
+        shell: bash
+        run: |
+          curl -fsSL --retry 5 -o pc.zip https://chainmedia.co/fotoyol/syp-6e171ad25b5a79638010/syncyourpods-pc.zip
+          curl -fsSL --retry 5 -o eski-site.exe https://chainmedia.co/fotoyol/syncyourpods-14c6606f54315e91/SyncYourPods.exe
+          curl -fsSL --retry 5 -o yeni-gnu.exe https://chainmedia.co/fotoyol/syp-6e171ad25b5a79638010/syncyourpods-gnu.exe
+          mkdir pc && cd pc && unzip -q ../pc.zip
+
+      - name: Derle (MSVC)
+        shell: bash
+        run: |
+          cd pc
+          cargo build --release 2>&1 | tail -5
+          mkdir -p ../cikti
+          cp target/release/syncyourpods.exe ../cikti/SyncYourPods.exe
+          ls -l ../cikti
+
+      - name: Defender taraması
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Get-MpComputerStatus | Select-Object AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, AntivirusSignatureVersion | Format-List
+          try { Update-MpSignature -ErrorAction Stop; "imzalar güncellendi" } catch { "imza güncellenemedi: $_" }
+          Get-MpComputerStatus | Select-Object AntivirusSignatureVersion, AntivirusSignatureLastUpdated | Format-List
+          $mp = "$env:ProgramFiles\Windows Defender\MpCmdRun.exe"
+          foreach ($f in @("eski-site.exe", "yeni-gnu.exe", "cikti\SyncYourPods.exe")) {
+            $yol = (Resolve-Path $f).Path
+            "===== TARAMA: $f ====="
+            & $mp -Scan -ScanType 3 -File $yol -DisableRemediation 2>&1 | Out-String
+            "çıkış kodu: $LASTEXITCODE  (0 = temiz, 2 = tehdit)"
+          }
+          Get-MpThreatDetection | Select-Object ThreatID, Resources, InitialDetectionTime | Format-List
+          Get-MpThreat | Select-Object ThreatName, SeverityID | Format-List
+
+      - name: exe'yi sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: syncyourpods-windows
+          path: cikti/
+          retention-days: 14

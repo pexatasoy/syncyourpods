@@ -125,12 +125,18 @@ pub fn calistir(o: Arc<Ortak>) {
         }
     };
 
-    // İlk kurulumda kendiliğinden açılışa ekle (kullanıcı menüden kapatabilir).
-    let ilk = crate::ayarlar::klasor().join(".acilis-ayarlandi");
+    // İlk açılışta açılışa eklemeyi SOR (sormadan eklemek hem kaba hem de virüs taramalarını kuşkulandırıyor).
+    let ilk = crate::ayarlar::klasor().join(".acilis-soruldu");
     if !ilk.exists() {
-        acilis_ayarla(true);
-        acilis.set_checked(true);
         let _ = std::fs::write(&ilk, b"1");
+        let evet = unsafe {
+            MessageBoxW(None, w!("SyncYourPods çalışıyor; simgesi saatin yanında.\n\nWindows açılınca kendiliğinden başlasın mı?"), w!("SyncYourPods"),
+                MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND) == IDYES
+        };
+        if evet {
+            acilis_ayarla(true);
+            acilis.set_checked(true);
+        }
     }
 
     let mut onceki = (None::<String>, false, false, false);
