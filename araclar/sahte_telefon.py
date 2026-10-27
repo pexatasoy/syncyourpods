@@ -37,6 +37,28 @@ t.settimeout(1.0)
 try:
     while True: mesajlar.append(oku())
 except Exception: pass
+# AirPods kutuya girdi → PC ses yollamayı bırakmalı; geri gelince sürdürmeli.
+def bosalt():
+    u.settimeout(0.001)
+    try:
+        while True: u.recvfrom(4096)
+    except socket.timeout: pass
+    u.settimeout(0.5)
+def say(sure):
+    bosalt()
+    n = 0; b = time.time(); sp = b
+    while time.time() - b < sure:
+        if time.time() - sp > 0.5: punch(); sp = time.time()
+        try: v, _ = u.recvfrom(4096)
+        except socket.timeout: continue
+        if v[1] == 1: n += 1
+    return n
+yolla({"t": "phone", "route": {"name": "AirPods", "headphones": False, "symbol": "airpodspro"}, "settings": {}})
+time.sleep(0.3); kutuda = say(1.0)
+yolla({"t": "phone", "route": {"name": "AirPods", "headphones": True, "symbol": "airpodspro"}, "settings": {}})
+time.sleep(0.3); takili = say(1.0)
+print("kutudayken ses paketi:", kutuda, " takılıyken:", takili)
+assert kutuda == 0 and takili > 100, "kulaklık durumu PC'ye ulaşmadı"
 yolla({"t": "bye"})
 print("ses paketi:", sayilar.get(1), "sessizlik paketi:", sayilar.get(2), "yedekli:", yedekli)
 eksik = sum(b - a - 1 for a, b in zip(siralar, siralar[1:]))

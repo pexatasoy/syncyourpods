@@ -101,6 +101,13 @@ public enum Mesaj: Equatable {
     case status(PCDurumu)
     case micState(String)
     case pong(ts: UInt64)
+    // PC paneli ↔ telefon (iki yönlü eşitleme)
+    /// PC → telefon: kısmi ayarlar (Ayarlar'ın JSON anahtarlarıyla bir nesne).
+    case set(Data)
+    /// PC → telefon: panel açık mı (açıkken telefon durumunu sık yollar).
+    case watch(Bool)
+    /// Önceden kurulmuş satır (telefon → PC "phone" durumu).
+    case ham(Data)
 }
 
 public struct PCDurumu: Equatable, Codable {
@@ -135,6 +142,12 @@ extension Mesaj {
             if let x = d.title { s["title"] = x }; if let x = d.artist { s["artist"] = x }; if let x = d.app { s["app"] = x }
         case let .micState(x): s = ["t": "micstate", "state": x]
         case let .pong(ts): s = ["t": "pong", "ts": ts]
+        case let .set(d): s = ["t": "set", "settings": (try? JSONSerialization.jsonObject(with: d)) ?? [:]]
+        case let .watch(on): s = ["t": "watch", "on": on]
+        case let .ham(d):
+            var x = d
+            if x.last != 0x0A { x.append(0x0A) }
+            return x
         }
         var d = (try? JSONSerialization.data(withJSONObject: s, options: [.sortedKeys])) ?? Data()
         d.append(0x0A)
@@ -162,6 +175,10 @@ extension Mesaj {
                                     pauseMedia: mantik("pauseMedia") ?? true, muteLocal: mantik("muteLocal")))
         case "micstate": return .micState(metin("state") ?? "off")
         case "pong": return .pong(ts: sayi("ts") ?? 0)
+        case "set":
+            guard let o = j["settings"], let d = try? JSONSerialization.data(withJSONObject: o) else { return nil }
+            return .set(d)
+        case "watch": return .watch(mantik("on") ?? false)
         default: return nil
         }
     }

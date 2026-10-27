@@ -171,7 +171,7 @@ pub mod win {
                 while o.aktif.load(Ordering::SeqCst) {
                     if son_aygit_bakisi.elapsed() > Duration::from_secs(1) {
                         son_aygit_bakisi = Instant::now();
-                        let istek = o.ayarlar.lock().unwrap().pc_sesini_kapat;
+                        let istek = o.ayarlar.lock().unwrap().pc_sesini_kapat && o.kulaklik.load(Ordering::SeqCst);
                         sus.denetle(istek, p.caliyor());
                         // Kullanıcı varsayılan çıkışı değiştirdiyse yeniden başla.
                         if let Ok(a) = numara.GetDefaultAudioEndpoint(eRender, eConsole) {

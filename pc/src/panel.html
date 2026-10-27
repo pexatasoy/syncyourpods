@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SyncYourPods</title>
+<style>
+  :root {
+    --zemin: #f2f2f7; --kart: #ffffff; --kart2: #e5e5ea; --dolgu: rgba(118,118,128,.12); --dolgu2: rgba(118,118,128,.2);
+    --yazi: #000; --ikincil: rgba(60,60,67,.6); --ucuncul: rgba(60,60,67,.3); --cizgi: rgba(60,60,67,.18);
+    --mavi: #007aff; --turuncu: #ff9500; --yesil: #34c759; --kirmizi: #ff3b30; --indigo: #5856d6; --pembe: #ff2d55;
+    --teal: #30b0c7; --mor: #af52de; --gri: #8e8e93; --golge: 0 8px 24px rgba(0,0,0,.08);
+    --cubuk: rgba(242,242,247,.86);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --zemin: #000; --kart: #1c1c1e; --kart2: #2c2c2e; --dolgu: rgba(118,118,128,.24); --dolgu2: rgba(118,118,128,.32);
+      --yazi: #fff; --ikincil: rgba(235,235,245,.6); --ucuncul: rgba(235,235,245,.3); --cizgi: rgba(84,84,88,.6);
+      --mavi: #0a84ff; --turuncu: #ff9f0a; --yesil: #30d158; --kirmizi: #ff453a; --indigo: #5e5ce6; --pembe: #ff375f;
+      --teal: #40c8e0; --mor: #bf5af2; --gri: #8e8e93; --golge: none; --cubuk: rgba(0,0,0,.82);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--zemin); color: var(--yazi); }
+  body {
+    font: 15px/1.35 -apple-system, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; user-select: none; cursor: default;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  svg { display: block; }
+
+  /* Sayfa yığını (iOS gezinmesi) */
+  #yigin { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .sayfa { position: absolute; inset: 0; background: var(--zemin); display: flex; flex-direction: column;
+    transition: transform .42s cubic-bezier(.32,.72,0,1), filter .42s; will-change: transform; }
+  .sayfa.sag { transform: translateX(100%); }
+  .sayfa.geride { transform: translateX(-28%); filter: brightness(.92); }
+  .ust { height: 52px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 10px;
+    background: var(--cubuk); backdrop-filter: saturate(180%) blur(20px); position: relative; z-index: 2; }
+  .ust .baslik { font-weight: 600; font-size: 16px; text-align: center; white-space: nowrap; }
+  .ust .sol { justify-self: start; } .ust .sag-k { justify-self: end; }
+  .geri { display: flex; align-items: center; gap: 2px; color: var(--mavi); font-size: 16px; padding: 6px 6px 6px 2px; border-radius: 8px; }
+  .geri:hover, .yuvarlak:hover { background: var(--dolgu); }
+  .yuvarlak { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--yazi); }
+  .icerik { flex: 1; overflow-y: auto; padding: 4px 16px 24px; scrollbar-width: thin; }
+  .icerik::-webkit-scrollbar { width: 6px } .icerik::-webkit-scrollbar-thumb { background: var(--dolgu2); border-radius: 3px; }
+
+  /* Kartlar ve listeler */
+  .kart { background: var(--kart); border-radius: 18px; padding: 14px; box-shadow: var(--golge); }
+  .bolum-bas { font-size: 12px; text-transform: uppercase; letter-spacing: .02em; color: var(--ikincil); padding: 18px 14px 6px; }
+  .bolum-not { font-size: 12.5px; color: var(--ikincil); padding: 6px 14px 0; line-height: 1.4; }
+  .liste { background: var(--kart); border-radius: 12px; overflow: hidden; box-shadow: var(--golge); }
+  .satir { display: flex; align-items: center; gap: 12px; padding: 0 14px; min-height: 46px; position: relative; width: 100%; text-align: left; }
+  .satir + .satir::before { content: ""; position: absolute; top: 0; right: 0; left: 14px; height: .5px; background: var(--cizgi); }
+  .satir.simgeli + .satir.simgeli::before { left: 55px; }
+  button.satir:hover, .satir.tik:hover { background: var(--dolgu); }
+  .satir .ad { flex: 1; min-width: 0; padding: 11px 0; }
+  .satir .ad small { display: block; font-size: 12.5px; color: var(--ikincil); margin-top: 1px; }
+  .satir .deger { color: var(--ikincil); white-space: nowrap; }
+  .satir .ok { color: var(--ucuncul); }
+  .satir.tehlike { color: var(--kirmizi); }
+  .satir.mavi { color: var(--mavi); }
+  .ayar-simge { width: 29px; height: 29px; border-radius: 7px; display: grid; place-items: center; color: #fff; flex: none; }
+  .ayar-simge svg { width: 17px; height: 17px; }
+  .tik-isaret { color: var(--mavi); opacity: 0; } .secili .tik-isaret { opacity: 1; }
+
+  /* iOS anahtarı */
+  .anahtar { width: 51px; height: 31px; border-radius: 16px; background: var(--dolgu2); position: relative; flex: none; transition: background .25s; }
+  .anahtar::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff;
+    box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16); transition: transform .25s cubic-bezier(.3,.7,.4,1); }
+  .anahtar.acik { background: var(--yesil); } .anahtar.acik::after { transform: translateX(20px); }
+
+  /* Kaydırıcı */
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; flex: 1; --dolu: 50%; }
+  input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px;
+    background: linear-gradient(to right, var(--mavi) var(--dolu), var(--dolgu2) var(--dolu)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #fff; margin-top: -11px;
+    box-shadow: 0 0.5px 4px rgba(0,0,0,.12), 0 6px 13px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04); cursor: grab; }
+  .kaydir { display: flex; align-items: center; gap: 10px; color: var(--ikincil); }
+
+  /* Bölümlü seçici */
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--dolgu); border-radius: 9px; padding: 2px; position: relative; }
+  .seg button { height: 30px; border-radius: 7px; font-size: 13px; font-weight: 500; position: relative; z-index: 1; transition: background .2s; }
+  .seg button.secili { background: var(--kart); box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04); font-weight: 600; }
+  @media (prefers-color-scheme: dark) { .seg button.secili { background: #636366; } }
+
+  /* Ana ekran */
+  .kahraman { display: flex; flex-direction: column; align-items: center; padding: 6px 0 14px; }
+  .daire { width: 136px; height: 136px; position: relative; display: grid; place-items: center; --renk: var(--gri); --sev: 0; }
+  .daire .zemin { position: absolute; inset: 0; border-radius: 50%; background: var(--renk); opacity: .1; transform: scale(calc(1 + var(--sev) * .07)); transition: transform .12s; }
+  .daire .halka { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--renk); opacity: 0; }
+  .daire.aktif .halka { animation: dalga 2.4s cubic-bezier(.2,.6,.3,1) infinite; }
+  .daire.aktif .halka:nth-child(3) { animation-delay: .8s } .daire.aktif .halka:nth-child(4) { animation-delay: 1.6s }
+  @keyframes dalga { from { transform: scale(1); opacity: .45 } to { transform: scale(1.55); opacity: 0 } }
+  .daire .ic { width: 98px; height: 98px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--renk) 96%, #fff), color-mix(in srgb, var(--renk) 78%, #000));
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--renk) 40%, transparent); transition: background .5s, box-shadow .5s; position: relative; }
+  .daire .ic svg { width: 50px; height: 50px; }
+  .kahraman h1 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; margin-top: 12px; text-align: center; }
+  .kahraman p { color: var(--ikincil); font-size: 14px; margin-top: 2px; text-align: center; }
+
+  .zincir { display: flex; align-items: flex-start; }
+  .dugum { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 78px; flex: none; }
+  .dugum .yuv { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--dolgu); color: var(--yazi);
+    border: 1.5px solid transparent; transition: all .35s; }
+  .dugum .yuv svg { width: 22px; height: 22px; }
+  .dugum span { font-size: 12px; color: var(--ikincil); max-width: 78px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dugum.vurgu .yuv { color: var(--v); border-color: var(--v); background: color-mix(in srgb, var(--v) 14%, transparent); }
+  .dugum.soluk { opacity: .4; }
+  .hat { flex: 1; height: 3px; border-radius: 2px; background: var(--dolgu); margin-top: 23px; position: relative; overflow: hidden; }
+  .hat.akiyor { background: color-mix(in srgb, var(--v) 25%, transparent); }
+  .hat i { position: absolute; top: -1.5px; width: 6px; height: 6px; border-radius: 50%; background: var(--v); opacity: 0; }
+  .hat.akiyor i { animation: ak 1.1s linear infinite; } .hat.akiyor i:nth-child(2) { animation-delay: -.37s } .hat.akiyor i:nth-child(3) { animation-delay: -.73s }
+  @keyframes ak { from { left: -6px; opacity: 0 } 25% { opacity: 1 } 75% { opacity: 1 } to { left: 100%; opacity: 0 } }
+
+  .calan { display: flex; align-items: center; gap: 12px; }
+  #calan-kart { padding: 10px 12px; }
+  .calan .k { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; color: var(--mavi); background: color-mix(in srgb, var(--mavi) 13%, transparent); flex: none; }
+  .calan .y { flex: 1; min-width: 0; }
+  .calan b { display: block; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .calan small { color: var(--ikincil); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .rozet { font-size: 11px; font-weight: 600; color: var(--turuncu); background: color-mix(in srgb, var(--turuncu) 14%, transparent); padding: 3px 8px; border-radius: 99px; }
+  .dalga-simge span { display: inline-block; width: 3px; margin: 0 1px; border-radius: 2px; background: currentColor; height: 6px; vertical-align: middle; }
+  .dalga-simge.oynuyor span { animation: cubuk 1s ease-in-out infinite; }
+  .dalga-simge span:nth-child(2) { animation-delay: -.3s } .dalga-simge span:nth-child(3) { animation-delay: -.6s } .dalga-simge span:nth-child(4) { animation-delay: -.15s }
+  @keyframes cubuk { 0%,100% { height: 5px } 50% { height: 18px } }
+
+  .kutular { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--kart); border-radius: 18px; padding: 12px 6px 10px; box-shadow: var(--golge); }
+  .kutu { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; border-radius: 12px; padding: 2px 0; }
+  .kutu .s { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--dolgu); transition: background .25s, color .25s, transform .15s; }
+  .kutu:hover .s { background: var(--dolgu2); } .kutu:active .s { transform: scale(.92); }
+  .kutu .s svg { width: 21px; height: 21px; }
+  .kutu.acik .s, .kutu.acik:hover .s { background: var(--r); color: #fff; }
+  .kutu b { font-size: 11.5px; font-weight: 600; display: block; line-height: 1.2; }
+  .kutu small { font-size: 10.5px; color: var(--ikincil); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 82px; }
+  .not { display: flex; gap: 8px; font-size: 12.5px; color: var(--ikincil); padding: 10px 4px 0; line-height: 1.4; }
+  .not svg { flex: none; width: 15px; height: 15px; margin-top: 1px; }
+  .alt-satir { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 12px; color: var(--ikincil); padding: 14px 0 2px; width: 100%; }
+  .alt-satir:hover { color: var(--yazi); }
+  .nokta { width: 7px; height: 7px; border-radius: 50%; background: var(--yesil); }
+  .yigit > * + * { margin-top: 10px; }
+  .adim { display: grid; grid-template-columns: 24px 1fr; gap: 12px; font-size: 14px; align-items: start; }
+  .adim + .adim { margin-top: 12px; }
+  .adim i { width: 22px; height: 22px; border-radius: 50%; background: var(--mavi); color: #fff; font: 700 12px/22px inherit; font-style: normal; text-align: center; }
+  .donen { width: 14px; height: 14px; border: 2px solid var(--dolgu2); border-top-color: var(--ikincil); border-radius: 50%; animation: don 1s linear infinite; }
+  @keyframes don { to { transform: rotate(360deg) } }
+
+  /* Ekolayzer */
+  .egri { height: 120px; } .egri path { transition: d .35s; }
+  .bant-etiket { display: flex; justify-content: space-between; font-size: 10px; color: var(--ikincil); padding-top: 6px; }
+  .dikeyler { display: flex; height: 200px; padding: 8px 0 4px; }
+  .dikey { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .dikey .db { font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ikincil); }
+  .dikey .db.d { color: var(--indigo); }
+  .dikey .ray { flex: 1; width: 22px; position: relative; cursor: ns-resize; touch-action: none; }
+  .dikey .ray::before { content: ""; position: absolute; left: 9px; top: 0; bottom: 0; width: 4px; border-radius: 2px; background: var(--dolgu2); }
+  .dikey .dolu { position: absolute; left: 9px; width: 4px; border-radius: 2px; background: var(--indigo); }
+  .dikey .top { position: absolute; left: 1px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); margin-top: -10px; }
+  .dikey span { font-size: 9.5px; color: var(--ikincil); }
+
+  .buyuk-sayi { font: 600 44px/1 -apple-system, "SF Pro Rounded", "Segoe UI Variable Display", "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .parcalar { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-top: 14px; }
+  .parcalar b { display: block; font-variant-numeric: tabular-nums; font-size: 15px; }
+  .parcalar small { color: var(--ikincil); font-size: 11.5px; }
+  .uygulama-simge { width: 76px; height: 76px; border-radius: 18px; background: linear-gradient(135deg, #0a84ff, #5e5ce6); display: grid; place-items: center; margin: 0 auto; box-shadow: 0 10px 24px rgba(10,132,255,.3); }
+  .pasif { opacity: .45; pointer-events: none; }
+  .gizli { display: none !important; }
+  .gr { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div id="yigin"></div>
+
+<script>
+"use strict";
+// ───────────────────────── Simgeler (SF Symbols benzeri, çizgi) ─────────────────────────
+const S_ = (yol, g = 24) => `<svg viewBox="0 0 ${g} ${g}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${yol}</svg>`;
+const SIMGE = {
+  airpods: `<svg viewBox="0 0 48 48" fill="currentColor"><path d="M14.5 7c-4.7 0-8.5 3.8-8.5 8.5 0 3.6 2.3 6.7 5.5 7.9V38a3 3 0 0 0 6 0V21.3c1.8-1.5 3-3.4 3-5.8C20.5 10.8 18.7 7 14.5 7zm19 0c-4.2 0-6 3.8-6 8.5 0 2.4 1.2 4.3 3 5.8V38a3 3 0 0 0 6 0V23.4c3.2-1.2 5.5-4.3 5.5-7.9C42 10.8 38.2 7 33.5 7z"/><circle cx="10.8" cy="16.6" r="1.7" fill="rgba(0,0,0,.25)"/><circle cx="37.2" cy="16.6" r="1.7" fill="rgba(0,0,0,.25)"/></svg>`,
+  kulaklik: S_('<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="7" rx="2"/><rect x="16.5" y="14" width="4.5" height="7" rx="2"/>'),
+  pc: S_('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
+  iphone: S_('<rect x="6.5" y="2.5" width="11" height="19" rx="2.6"/><path d="M10.5 18.5h3"/>'),
+  mik: S_('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>'),
+  mikYok: S_('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M4 4l16 16"/>'),
+  degis: S_('<path d="M7 7h12l-3-3M17 17H5l3 3"/>'),
+  eq: S_('<path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="14" r="2" fill="currentColor"/><circle cx="12" cy="8" r="2" fill="currentColor"/><circle cx="18" cy="15" r="2" fill="currentColor"/>'),
+  sure: S_('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4"/>'),
+  ses: S_('<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
+  sesAz: S_('<path d="M5 9.5h3.5L13 5v14l-4.5-4.5H5z" fill="currentColor"/>'),
+  disli: S_('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>'),
+  sag: S_('<path d="M9 5l7 7-7 7"/>'),
+  sol: S_('<path d="M15 5l-7 7 7 7"/>'),
+  kulak: S_('<path d="M7 9a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0"/><path d="M10 9.5a2 2 0 0 1 4 0"/>'),
+  nabiz: S_('<path d="M3 12h4l2-5 4 10 2-5h6"/>'),
+  bilgi: S_('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'),
+  titresim: S_('<rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 8v8M20 8v8"/>'),
+  el: S_('<path d="M9 11V5a1.5 1.5 0 0 1 3 0v6m0-1V4a1.5 1.5 0 0 1 3 0v7m0-2a1.5 1.5 0 0 1 3 0v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L4 13.5a1.6 1.6 0 0 1 2.6-1.9L9 14"/>'),
+  uyari: S_('<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>'),
+  baglanti: S_('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  guc: S_('<path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0"/>'),
+  belge: S_('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'),
+  isaret: S_('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+};
+const simgeKutu = (ad, renk) => `<span class="ayar-simge" style="background:${renk}">${SIMGE[ad]}</span>`;
+
+// ───────────────────────── Durum ve köprü ─────────────────────────
+let D = null;              // Rust'tan gelen son durum
+let surukleniyor = null;   // elle kaydırılan denetim (o an gelen durumla geri sıçramasın)
+const ipcVar = !!(window.ipc && window.ipc.postMessage);
+const yolla = (m) => { if (ipcVar) window.ipc.postMessage(JSON.stringify(m)); };
+const A = () => (D && D.tel && D.tel.settings) || null;   // telefon ayarları
+const bagli = () => !!(D && D.telefonAdi);
+const telVar = () => !!A();
+
+function telAyar(k, v) {
+  const a = A(); if (!a) return;
+  a[k] = v;
+  yolla({ k: "set", v: { [k]: v } });
+  guncelle();
+}
+function pcAyar(ad, v) { if (D) D.pc[ad] = v; yolla({ k: "pc", ad, v }); guncelle(); }
+
+window.durum = (d) => {
+  // Kaydırırken gelen eski değer elimizdeki değeri ezmesin.
+  if (surukleniyor && A() && d.tel && d.tel.settings) d.tel.settings[surukleniyor.k] = surukleniyor.v;
+  D = d;
+  guncelle();
+};
+window.acildi = () => { document.body.animate([{ opacity: .4, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 260, easing: "cubic-bezier(.3,.7,.3,1)" }); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (yigin.length > 1) geri(); else yolla({ k: "gizle" }); } });
+
+// ───────────────────────── Yardımcılar ─────────────────────────
+const kaynak = () => {
+  if (!bagli()) return "yok";
+  if (!D.kulaklik) return "kutu";
+  if (D.tel && D.tel.focus === "phone") return "telefon";
+  return D.pc.caliyor ? "pc" : "sessiz";
+};
+const renkKaynak = (k) => ({ pc: "var(--mavi)", telefon: "var(--turuncu)" }[k] || "var(--gri)");
+const st = () => (D && D.tel && D.tel.stats) || {};
+const toplamGecikme = () => { const s = st(); return (s.bufferMs || 0) + (s.btMs || 0) + (s.rttMs || 0) / 2; };
+const kayipYuzde = () => { const s = st(); const t = (s.received || 0) + (s.lost || 0); return t ? (s.lost || 0) / t * 100 : 0; };
+const hazirlar = () => (D && D.tel && D.tel.eqPresets) || [];
+const eqKazanclari = () => {
+  const a = A(); if (!a) return Array(10).fill(0);
+  if (a.eqHazir === "ozel") return a.eqOzel || Array(10).fill(0);
+  const h = hazirlar().find(x => x.id === a.eqHazir); return h ? h.k : Array(10).fill(0);
+};
+const eqAdi = () => { const a = A(); if (!a) return ""; if (a.eqHazir === "ozel") return "Özel"; const h = hazirlar().find(x => x.id === a.eqHazir); return h ? h.ad : "Açık"; };
+const GECIKME_AD = { enDusuk: "En düşük", dengeli: "Dengeli", kararli: "Kararlı" };
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ───────────────────────── Yapı taşları ─────────────────────────
+const anahtar = (bag) => `<button class="anahtar" ${bag}></button>`;
+const satirAnahtar = (ad, bag, alt = "") => `<div class="satir"><div class="ad">${ad}${alt ? `<small>${alt}</small>` : ""}</div>${anahtar(bag)}</div>`;
+const satirGit = (simge, renk, ad, sayfa, yaz = "") =>
+  `<button class="satir simgeli" data-git="${sayfa}">${simgeKutu(simge, renk)}<span class="ad">${ad}</span><span class="deger" ${yaz ? `data-yaz="${yaz}"` : ""}></span><span class="ok">${SIMGE.sag.replace('<svg', '<svg width="14" height="14"')}</span></button>`;
+const secim = (anahtarAd, deger, ad, alt = "") =>
+  `<button class="satir" data-sec="${anahtarAd}" data-deger="${deger}"><span class="ad">${ad}${alt ? `<small>${alt}</small>` : ""}</span><span class="tik-isaret">${SIMGE.isaret.replace('<svg', '<svg width="18" height="18"')}</span></button>`;
+const bolum = (bas, ic, not = "") => `${bas ? `<div class="bolum-bas">${bas}</div>` : `<div style="height:18px"></div>`}<div class="liste">${ic}</div>${not ? `<div class="bolum-not">${not}</div>` : ""}`;
+
+// ───────────────────────── Sayfalar ─────────────────────────
+const SAYFA = {
+  ana: { baslik: "", ciz: () => `
+    <div class="kahraman">
+      <div class="daire" id="daire"><div class="zemin"></div><div class="halka"></div><div class="halka"></div><div class="halka"></div><div class="ic" id="kahraman-simge"></div></div>
+      <h1 id="rota-ad"></h1><p id="durum-yazi"></p>
+    </div>
+    <div id="bagli-icerik" class="yigit">
+      <div class="kart" style="padding:12px 10px"><div class="zincir" id="zincir"></div></div>
+      <div class="kart" id="calan-kart"><div class="calan"><div class="k"><span class="dalga-simge" id="dalga"><span></span><span></span><span></span><span></span></span></div>
+        <div class="y"><b id="calan-baslik"></b><small id="calan-alt"></small></div><span class="rozet gizli" id="duraklatildi">Duraklatıldı</span></div></div>
+      <div class="kart" style="padding:10px 14px 6px"><div style="font-weight:600;font-size:13px;color:var(--ikincil)">Bilgisayar sesi</div>
+        <div class="kaydir">${SIMGE.sesAz.replace('<svg', '<svg width="16" height="16"')}<input type="range" min="0" max="1" step="0.01" data-tel="ses">${SIMGE.ses.replace('<svg', '<svg width="20" height="20"')}</div></div>
+      <div class="kutular">
+        <button class="kutu" id="k-mik" style="--r:var(--kirmizi)"><span class="s" id="k-mik-s"></span><span><b>Mikrofon</b><small id="k-mik-a"></small></span></button>
+        <button class="kutu" id="k-gecis" style="--r:var(--turuncu)"><span class="s">${SIMGE.degis}</span><span><b>Geçiş</b><small id="k-gecis-a"></small></span></button>
+        <button class="kutu" id="k-eq" style="--r:var(--indigo)" data-git="eq"><span class="s">${SIMGE.eq}</span><span><b>Ekolayzer</b><small id="k-eq-a"></small></span></button>
+        <button class="kutu" id="k-pcses" style="--r:var(--pembe)"><span class="s">${SIMGE.pc}</span><span><b>Sessiz PC</b><small id="k-pcses-a"></small></span></button>
+      </div>
+      <div class="not gizli" id="mik-not">${SIMGE.bilgi}<span>Mikrofon açıkken AirPods telefon görüşmesi kipine geçer, dinlediğin sesin kalitesi düşer.</span></div>
+      <div class="not gizli" id="kablo-not" style="color:var(--turuncu)">${SIMGE.uyari}<span>Bilgisayarda sanal mikrofon yok. Kurulum için Ayarlar → Mikrofon.</span></div>
+      <button class="alt-satir" data-git="tanilama"><span class="nokta" id="alt-nokta"></span><span id="alt-yazi" class="gr"></span></button>
+    </div>
+    <div id="bekle-icerik" class="yigit">
+      <div class="kart" style="padding:18px">
+        <div style="font-weight:700;font-size:16px;margin-bottom:14px">Başlarken</div>
+        <div class="adim"><i>1</i><span>iPhone’da <b>SyncYourPods</b>’u aç. Bu bilgisayarla aynı ağda olsun.</span></div>
+        <div class="adim"><i>2</i><span>İlk bağlantıda çıkan izin penceresine <b>Evet</b> de.</span></div>
+        <div class="adim"><i>3</i><span>AirPods’u tak. Bilgisayarın sesi kulağında.</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;color:var(--ikincil);font-size:13px"><span class="donen"></span>iPhone bekleniyor…</div>
+      </div>
+      <div class="liste"><button class="satir mavi" id="site-ac"><span class="ad">iPhone uygulamasını yükle</span>${SIMGE.baglanti.replace('<svg', '<svg width="16" height="16"')}</button></div>
+    </div>`,
+    guncelle: () => {
+      const k = kaynak(), a = A();
+      const daire = document.getElementById("daire"); if (!daire) return;
+      const rota = D.tel && D.tel.route;
+      daire.style.setProperty("--renk", renkKaynak(k));
+      daire.style.setProperty("--sev", Math.min(1, (st().level || 0) * 1.6));
+      daire.classList.toggle("aktif", k === "pc" || k === "telefon");
+      const simgeAd = (k === "yok" || k === "kutu") ? "kulaklik" : (rota && /airpods/i.test(rota.symbol || "") ? "airpods" : "kulaklik");
+      const ks = document.getElementById("kahraman-simge"); if (ks.dataset.s !== simgeAd) { ks.innerHTML = SIMGE[simgeAd]; ks.dataset.s = simgeAd; }
+      metin("rota-ad", !bagli() ? "iPhone bekleniyor" : (D.kulaklik ? (rota ? rota.name : D.telefonAdi) : "AirPods kutuda"));
+      metin("durum-yazi", { yok: "iPhone’da SyncYourPods’u aç", kutu: "Bilgisayar kendi sesine döndü", pc: "Bilgisayardan çalıyor", telefon: "iPhone’dan çalıyor", sessiz: "Bilgisayar sessiz" }[k]);
+      goster("bagli-icerik", bagli()); goster("bekle-icerik", !bagli());
+      if (!bagli()) return;
+      // Zincir
+      const z = document.getElementById("zincir");
+      const v = renkKaynak(k);
+      const html = `
+        <div class="dugum ${k === "pc" ? "vurgu" : ""}" style="--v:var(--mavi)"><div class="yuv">${SIMGE.pc}</div><span>${esc(D.pc.ad)}</span></div>
+        <div class="hat ${k === "pc" ? "akiyor" : ""}" style="--v:var(--mavi)"><i></i><i></i><i></i></div>
+        <div class="dugum ${k === "telefon" ? "vurgu" : ""}" style="--v:var(--turuncu)"><div class="yuv">${SIMGE.iphone}</div><span>iPhone</span></div>
+        <div class="hat ${(k === "pc" || k === "telefon") ? "akiyor" : ""}" style="--v:${v}"><i></i><i></i><i></i></div>
+        <div class="dugum ${D.kulaklik ? "" : "soluk"}"><div class="yuv">${simgeAd === "airpods" ? SIMGE.airpods : SIMGE.kulaklik}</div><span>Kulaklık</span></div>`;
+      if (z.dataset.h !== k + D.kulaklik + simgeAd + D.pc.ad) { z.innerHTML = html; z.dataset.h = k + D.kulaklik + simgeAd + D.pc.ad; }
+      // Çalan
+      goster("calan-kart", !!D.pc.baslik);
+      metin("calan-baslik", D.pc.baslik || "");
+      metin("calan-alt", [D.pc.sanatci, D.pc.uygulama].filter(Boolean).join(" · "));
+      document.getElementById("dalga").classList.toggle("oynuyor", D.pc.caliyor && k === "pc");
+      goster("duraklatildi", k === "telefon" && D.pc.medyaDuraklat);
+      // Kutular
+      const mikAcik = a && a.mikAcik;
+      kutu("k-mik", mikAcik, mikAcik ? ({ on: "Açık", noDevice: "Sanal mikrofon yok", error: "Hata" }[D.pc.mik] || "Açılıyor…") : "Kapalı");
+      const ms = document.getElementById("k-mik-s"); const mAd = mikAcik ? "mik" : "mikYok"; if (ms.dataset.s !== mAd) { ms.innerHTML = SIMGE[mAd]; ms.dataset.s = mAd; }
+      kutu("k-gecis", a && a.otomatikGecis, a && a.otomatikGecis ? "Açık" : "Kapalı");
+      kutu("k-eq", a && a.eqAcik, a && a.eqAcik ? eqAdi() : "Kapalı");
+      kutu("k-pcses", D.pc.pcSesiniKapat, D.pc.pcSesiniKapat ? "Açık" : "Kapalı");
+      goster("mik-not", !!mikAcik); goster("kablo-not", D.pc.mik === "noDevice");
+      const s = st();
+      metin("alt-yazi", `≈ ${Math.round(toplamGecikme())} ms · ${Math.round((s.inputHz || 48000) / 1000)} kHz · kayıp %${kayipYuzde().toFixed(1)}`);
+      document.getElementById("alt-nokta").style.background = (s.underruns > 5 || kayipYuzde() > 1) ? "var(--turuncu)" : "var(--yesil)";
+    },
+    bagla: (el) => {
+      el.querySelector("#k-mik").onclick = () => { const a = A(); if (a) telAyar("mikAcik", !a.mikAcik); };
+      el.querySelector("#k-gecis").onclick = () => { const a = A(); if (a) telAyar("otomatikGecis", !a.otomatikGecis); };
+      el.querySelector("#k-pcses").onclick = () => pcAyar("pcSesiniKapat", !D.pc.pcSesiniKapat);
+      el.querySelector("#site-ac").onclick = () => yolla({ k: "ac", url: D.pc.site });
+    },
+  },
+
+  ayarlar: { baslik: "Ayarlar", ciz: () => `
+    ${bolum("", satirGit("pc", "var(--mavi)", "Bilgisayar", "bilgisayar", "pcAd"))}
+    ${bolum("Ses", satirGit("ses", "var(--pembe)", "Ses", "ses", "sesYuzde") + satirGit("eq", "var(--indigo)", "Ekolayzer", "eq", "eqDurum") + satirGit("sure", "var(--teal)", "Gecikme", "gecikme", "gecikmeAd"))}
+    ${bolum("AirPods", satirGit("degis", "var(--turuncu)", "Otomatik Geçiş", "gecis", "gecisDurum") + satirGit("mik", "var(--kirmizi)", "Mikrofon", "mik", "mikDurum") + satirGit("kulak", "var(--gri)", "Gürültü Engelleme", "gurultu"))}
+    ${bolum("", satirGit("nabiz", "var(--yesil)", "Tanılama", "tanilama") + satirGit("bilgi", "var(--gri)", "Hakkında", "hakkinda"))}`,
+  },
+
+  ses: { baslik: "Ses", telGerek: true, ciz: () => `
+    <div style="height:18px"></div>
+    <div class="liste"><div class="satir" style="flex-direction:column;align-items:stretch;padding:10px 14px">
+      <div style="display:flex;justify-content:space-between"><span>Bilgisayar sesi</span><span class="gr" style="color:var(--ikincil)" data-yaz="sesYuzde"></span></div>
+      <div class="kaydir">${SIMGE.sesAz.replace('<svg', '<svg width="16" height="16"')}<input type="range" min="0" max="1" step="0.01" data-tel="ses">${SIMGE.ses.replace('<svg', '<svg width="20" height="20"')}</div></div></div>
+    <div class="bolum-not">Yalnız bilgisayardan gelen sesi etkiler. Genel ses düzeyi iPhone’un ses tuşlarıyla.</div>
+    <div style="height:18px"></div>
+    <div class="liste">
+      <div class="satir" style="flex-direction:column;align-items:stretch;padding:10px 14px">
+        <div style="display:flex;justify-content:space-between"><span>Denge</span><span class="gr" style="color:var(--ikincil)" data-yaz="denge"></span></div>
+        <div class="kaydir"><small>Sol</small><input type="range" min="-1" max="1" step="0.02" data-tel="denge" data-orta="1"><small>Sağ</small></div></div>
+      ${satirAnahtar("Mono ses", 'data-tel="mono"')}
+    </div>
+    <div class="bolum-not">Mono, iki kulağa aynı sesi verir: tek AirPods taktığında hiçbir şey kaçmaz.</div>
+    ${bolum("", satirAnahtar("Bilgisayarın kendi sesi kapalı", 'data-pc="pcSesiniKapat"'), "Bağlıyken bilgisayarın hoparlörü ya da kulaklığı susar, ses yalnız AirPods’ta olur. AirPods kutuya girince ya da bağlantı bitince eski hâline döner.")}
+    <div class="bolum-bas">Ses yükseltici</div>
+    <div class="seg" data-seg="yukseltici"><button data-deger="kapali">Kapalı</button><button data-deger="hafif">Hafif</button><button data-deger="guclu">Güçlü</button></div>
+    <div class="bolum-not">Kısık konuşmaları yükseltir, ani patlamaları bastırır. Sessiz videolar ve gece dinlemesi için.</div>`,
+  },
+
+  eq: { baslik: "Ekolayzer", telGerek: true, ciz: () => `
+    ${bolum("", satirAnahtar("Ekolayzer", 'data-tel="eqAcik"'))}
+    <div style="height:18px"></div>
+    <div class="kart"><svg class="egri" id="egri" viewBox="0 0 320 120" preserveAspectRatio="none" width="100%"></svg>
+      <div class="bant-etiket"><span>32</span><span>64</span><span>125</span><span>250</span><span>500</span><span>1K</span><span>2K</span><span>4K</span><span>8K</span><span>16K</span></div></div>
+    <div id="ozel-bolum"><div class="bolum-bas">Özel ayar</div><div class="kart"><div class="dikeyler" id="dikeyler"></div>
+      <button class="satir tehlike" id="eq-sifirla" style="padding:0;min-height:36px"><span class="ad">Sıfırla</span></button></div>
+      <div class="bolum-not">±12 dB. Kırpılmayı önlemek için yükselttiğin kadar genel ses kendiliğinden biraz kısılır.</div></div>
+    <div class="bolum-bas">Hazır ayarlar</div><div class="liste" id="hazirlar"></div>`,
+    guncelle: () => {
+      const a = A(); if (!a) return;
+      const k = eqKazanclari();
+      const n = (i) => ({ x: 320 * i / 9, y: 60 - (k[i] / 12) * 56 });
+      let d = `M ${n(0).x} ${n(0).y}`;
+      for (let i = 1; i < 10; i++) { const p = n(i - 1), q = n(i), o = (q.x - p.x) / 2; d += ` C ${p.x + o} ${p.y}, ${q.x - o} ${q.y}, ${q.x} ${q.y}`; }
+      const renk = a.eqAcik ? "var(--indigo)" : "var(--gri)";
+      document.getElementById("egri").innerHTML = `<defs><linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${renk}" stop-opacity=".28"/><stop offset="1" stop-color="${renk}" stop-opacity="0"/></linearGradient></defs>
+        <line x1="0" y1="60" x2="320" y2="60" stroke="var(--cizgi)" stroke-dasharray="3 4"/><path d="${d} L 320 120 L 0 120 Z" fill="url(#gd)"/><path d="${d}" fill="none" stroke="${renk}" stroke-width="2.5" stroke-linecap="round"/>`;
+      const hl = document.getElementById("hazirlar");
+      const imza = hazirlar().map(h => h.id).join();
+      if (hl.dataset.i !== imza) {
+        hl.innerHTML = hazirlar().map(h => secim("eqHazir", h.id, esc(h.ad))).join("") + secim("eqHazir", "ozel", "Özel");
+        hl.dataset.i = imza;
+      }
+      goster("ozel-bolum", a.eqHazir === "ozel");
+      if (a.eqHazir === "ozel") dikeyleriCiz(a.eqOzel || Array(10).fill(0));
+    },
+    bagla: (el) => {
+      el.querySelector("#eq-sifirla").onclick = () => telAyar("eqOzel", Array(10).fill(0));
+      el.querySelector("#hazirlar").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-sec]"); if (!b) return; e.stopPropagation();
+        const a = A(); if (!a) return;
+        if (b.dataset.deger === "ozel" && a.eqHazir !== "ozel") { const k = eqKazanclari().slice(); a.eqOzel = k; yolla({ k: "set", v: { eqOzel: k } }); }
+        a.eqHazir = b.dataset.deger; a.eqAcik = true;
+        yolla({ k: "set", v: { eqHazir: a.eqHazir, eqAcik: true } }); guncelle();
+      }, true);
+    },
+  },
+
+  gecis: { baslik: "Otomatik Geçiş", telGerek: true, ciz: () => `
+    ${bolum("", satirAnahtar("Otomatik geçiş", 'data-tel="otomatikGecis"'), "iPhone’da bir video ya da müzik başlayınca AirPods ona geçer; bitince bilgisayarın sesi geri gelir.")}
+    <div data-goster="otomatikGecis">
+      ${bolum("iPhone sesi gelince bilgisayar", secim("gecisModu", "sustur", "Susar", "Yalnız iPhone duyulur.") + secim("gecisModu", "kis", "Kısılır", "Bilgisayar arka planda alçak sesle devam eder.") + secim("gecisModu", "karistir", "Karışır", "İkisi birlikte duyulur, geçiş yapılmaz.") +
+        `<div class="satir" data-goster-esit="gecisModu=kis"><span class="ad">Arka plan sesi</span><input type="range" min="0.05" max="0.6" step="0.01" data-tel="kisSeviyesi" style="max-width:150px"></div>`)}
+      ${bolum("", satirAnahtar("Bilgisayardaki medyayı duraklat", 'data-pc="medyaDuraklat"'), "YouTube, Spotify ya da film iPhone sesi çalarken duraklar, iPhone sesi bitince kaldığı yerden sürer.")}
+      <div class="bolum-bas">Geri dönüş</div>
+      <div class="seg" data-seg="donusGecikmesi"><button data-deger="0.3">Hemen</button><button data-deger="0.6">Kısa</button><button data-deger="1.5">Uzun</button></div>
+      <div style="height:12px"></div>
+      <div class="liste"><div class="satir" style="flex-direction:column;align-items:stretch;padding:10px 14px">
+        <div style="display:flex;justify-content:space-between"><span>Geçiş yumuşaklığı</span><span class="gr" style="color:var(--ikincil)" data-yaz="gecisSuresi"></span></div>
+        <input type="range" min="0.05" max="1" step="0.01" data-tel="gecisSuresi"></div></div>
+      <div class="bolum-not">Geri dönüş, iPhone sesi sustuktan sonra beklenen süre: Reels gibi art arda videolarda gidip gelmeyi önler.</div>
+    </div>
+    ${bolum("", `<div class="satir"><span class="ayar-simge" style="background:var(--turuncu)">${SIMGE.el}</span><span class="ad" style="font-size:13.5px">iPhone’da müzik çalarken bilgisayara dönmek için AirPods’a bir kez bas: iPhone’daki müzik durur, bilgisayarın sesi hemen gelir.</span></div>`, "iOS, başka bir uygulamanın sesini arka plandan durdurmamıza izin vermiyor; bu yön senin dokunuşunla olur.")}`,
+  },
+
+  gecikme: { baslik: "Gecikme", telGerek: true, ciz: () => `
+    <div style="height:18px"></div>
+    <div class="kart" style="text-align:center;padding:20px 14px 16px">
+      <div class="buyuk-sayi"><span data-yaz="toplam"></span> <span style="font-size:24px">ms</span></div>
+      <div style="color:var(--ikincil);font-size:12.5px;margin-top:6px">bilgisayardan kulağa toplam gecikme</div>
+      <div class="parcalar"><div><b style="color:var(--teal)" data-yaz="ag"></b><small>Ağ</small></div><div><b style="color:var(--mavi)" data-yaz="tampon"></b><small>Tampon</small></div><div><b style="color:var(--indigo)" data-yaz="bt"></b><small>Bluetooth</small></div></div>
+    </div>
+    ${bolum("", secim("gecikme", "enDusuk", "En düşük", "Oyun ve video için. Ağ zayıfsa tampon kendiliğinden büyür.") + secim("gecikme", "dengeli", "Dengeli", "Çoğu ev ağı için.") + secim("gecikme", "kararli", "Kararlı", "Müzik ve podcast için. Kalabalık ağda bile kesilmez."), "Tampon, ağın o anki durumuna göre kendini ayarlar.")}
+    ${bolum("Deneysel", satirAnahtar("Görüşme kipi", 'data-tel="gorusmeKipi"'), "En büyük pay Bluetooth’un. Görüşme kipinde AirPods telefon görüşmesindeki gibi bağlanır: gecikme belirgin düşer ama ses mono ve daha boğuk olur. Oyun ve dudak senkronu için.")}`,
+  },
+
+  mik: { baslik: "Mikrofon", telGerek: true, ciz: () => `
+    ${bolum("", satirAnahtar("AirPods mikrofonu", 'data-tel="mikAcik"'), "Açıkken AirPods telefon görüşmesi kipine geçer: konuşabilirsin ama dinlediğin sesin kalitesi düşer. İşin bitince kapat.")}
+    ${bolum("", satirAnahtar("Yüksek kalite", 'data-tel="mikYuksekKalite"') + satirAnahtar("Ses yalıtımı", 'data-tel="mikSesYalitimi"'), "Yüksek kalite, iOS 26 ve H2 çipli AirPods’ta (AirPods Pro 2, AirPods 4) kalite kaybını azaltır. Ses yalıtımı arka plan gürültüsünü ve yankıyı bastırır.")}
+    ${bolum("", `<div class="satir"><span class="ad">Bu bilgisayar</span><span class="deger" data-yaz="mikPC"></span></div>`)}
+    <div class="bolum-bas">Bilgisayarda bir kez</div>
+    <div class="kart" style="padding:16px">
+      <div class="adim"><i>1</i><span>Ücretsiz VB-CABLE’ı kur ve bilgisayarı yeniden başlat.</span></div>
+      <div class="adim"><i>2</i><span>Discord, Zoom ya da Teams’te mikrofon olarak <b>CABLE Output</b>’u seç.</span></div>
+      <div class="adim"><i>3</i><span>Buradan mikrofonu aç. SyncYourPods sesi kendisi oraya verir.</span></div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="liste"><button class="satir mavi" id="vb"><span class="ad">VB-CABLE indirme sayfası</span>${SIMGE.baglanti.replace('<svg', '<svg width="16" height="16"')}</button></div>`,
+    bagla: (el) => { el.querySelector("#vb").onclick = () => yolla({ k: "ac", url: "https://vb-audio.com/Cable/" }); },
+  },
+
+  bilgisayar: { baslik: "Bilgisayar", ciz: () => `
+    ${bolum("", `<div class="satir"><span class="ad">Ad</span><span class="deger" data-yaz="pcAd"></span></div><div class="satir"><span class="ad">Ses aygıtı</span><span class="deger" data-yaz="cihaz" style="max-width:180px;overflow:hidden;text-overflow:ellipsis"></span></div><div class="satir"><span class="ad">Bağlı iPhone</span><span class="deger" data-yaz="telAd"></span></div>`)}
+    ${bolum("", satirAnahtar("Windows açılınca başlat", 'data-pc="acilis"'))}
+    ${bolum("", `<button class="satir mavi" id="unut"><span class="ad">Eşlenmiş iPhone’ları unut</span></button><button class="satir mavi" id="gunluk"><span class="ad">Günlüğü aç</span></button><button class="satir mavi" id="site"><span class="ad">İndirme sayfası</span></button>`, "Unutulan iPhone bir dahaki bağlantıda yeniden izin ister.")}
+    ${bolum("", `<button class="satir tehlike" id="cik"><span class="ad">SyncYourPods’tan çık</span></button>`, "Çıkınca bilgisayarın sesi eski hâline döner.")}`,
+    bagla: (el) => {
+      el.querySelector("#unut").onclick = (e) => { yolla({ k: "unut" }); e.currentTarget.querySelector(".ad").textContent = "Unutuldu"; };
+      el.querySelector("#gunluk").onclick = () => yolla({ k: "gunluk" });
+      el.querySelector("#site").onclick = () => yolla({ k: "ac", url: D.pc.site });
+      el.querySelector("#cik").onclick = () => yolla({ k: "cikis" });
+    },
+  },
+
+  gurultu: { baslik: "Gürültü Engelleme", ciz: () => `
+    <div style="height:18px"></div>
+    <div class="kart" style="display:flex;justify-content:space-around;padding:18px 8px">
+      ${[["Gürültü Engelleme", "kulaklik"], ["Uyarlanabilir", "kulak"], ["Ortam Sesi", "ses"]].map(([a, s]) => `<div style="text-align:center;width:90px"><div style="width:52px;height:52px;border-radius:50%;background:var(--dolgu);display:grid;place-items:center;margin:0 auto 8px">${SIMGE[s].replace('<svg', '<svg width="22" height="22"')}</div><small style="color:var(--ikincil);font-size:11px">${a}</small></div>`).join("")}
+    </div>
+    <div class="bolum-not">Dinleme kipi AirPods’un kendi ayarıdır. Apple bu ayarın başka uygulamalarca değiştirilmesine izin vermiyor; SyncYourPods sesi hangi kipte olursan ol aynen taşır.</div>
+    ${bolum("Kipi değiştirmek için", `<div class="satir"><span class="ad">AirPods’un sapını basılı tut.</span></div><div class="satir"><span class="ad">iPhone’da Kontrol Merkezi’nde ses kaydırıcısını basılı tut.</span></div><div class="satir"><span class="ad">iPhone Ayarları → AirPods’un adı.</span></div>`)}`,
+  },
+
+  tanilama: { baslik: "Tanılama", ciz: () => {
+    const s = (ad, yaz) => `<div class="satir"><span class="ad">${ad}</span><span class="deger gr" data-yaz="${yaz}"></span></div>`;
+    return `${bolum("Geçiş", s("Öncelikli ses ipucu", "ipucu") + s("Başka ses çalıyor", "diger") + s("Ses nerede", "nerede") + s("Kulaklık", "kulaklik"))}
+      ${bolum("Tampon", s("Durum", "tDurum") + s("Doluluk / hedef", "doluluk") + s("Ağ titreşimi", "titreme") + s("Saat kayması", "kayma") + s("Giriş hızı", "hiz"))}
+      ${bolum("Paketler", s("Alınan", "alinan") + s("Yedekten kurtarılan", "kurtarilan") + s("Kayıp (örtülen)", "kayip") + s("Geç gelen", "gec") + s("Boşalma", "bosalma") + s("Atlama", "atlama"))}
+      ${bolum("Çıkış", s("Rota", "rota") + s("Bluetooth + iOS", "bt") + s("Ağ gidiş-dönüş", "rtt") + s("PC ses aygıtı", "cihaz"))}`; } },
+
+  hakkinda: { baslik: "Hakkında", ciz: () => `
+    <div style="height:24px"></div>
+    <div class="uygulama-simge"><svg viewBox="0 0 48 48" width="46" height="46" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"><circle cx="24" cy="24" r="8.5"/><circle cx="24" cy="24" r="2.6" fill="#fff" stroke="none"/><path d="M13 16.5a13 13 0 0 0 0 15M35 16.5a13 13 0 0 1 0 15"/><path d="M8 12a20 20 0 0 0 0 24M40 12a20 20 0 0 1 0 24" stroke="rgba(255,255,255,.65)"/></svg></div>
+    <div style="text-align:center;margin-top:12px"><div style="font-weight:700;font-size:18px">SyncYourPods</div><div style="color:var(--ikincil);font-size:13px" data-yaz="surum"></div></div>
+    <div class="bolum-not" style="text-align:center;padding-top:18px">Bluetooth’u olmayan bilgisayarın sesini, aynı ağdaki iPhone üzerinden AirPods’a taşır. Ses yalnız evinin ağında dolaşır; hiçbir sunucuya gitmez.</div>`,
+  },
+};
+
+// Metin bağları
+const YAZ = {
+  pcAd: () => D ? D.pc.ad : "", cihaz: () => D ? D.pc.cihaz || "—" : "", telAd: () => D && D.telefonAdi || "Yok",
+  sesYuzde: () => A() ? "%" + Math.round(A().ses * 100) : "",
+  denge: () => { const v = A() ? A().denge : 0; return Math.abs(v) < 0.01 ? "Orta" : (v < 0 ? "Sol %" : "Sağ %") + Math.round(Math.abs(v) * 100); },
+  eqDurum: () => A() ? (A().eqAcik ? eqAdi() : "Kapalı") : "", gecikmeAd: () => A() ? GECIKME_AD[A().gecikme] || "" : "",
+  gecisDurum: () => A() ? (A().otomatikGecis ? "Açık" : "Kapalı") : "", mikDurum: () => A() ? (A().mikAcik ? "Açık" : "Kapalı") : "",
+  gecisSuresi: () => A() ? Math.round(A().gecisSuresi * 1000) + " ms" : "",
+  toplam: () => Math.round(toplamGecikme()), ag: () => Math.round((st().rttMs || 0) / 2), tampon: () => Math.round(st().bufferMs || 0), bt: () => Math.round(st().btMs || 0),
+  mikPC: () => !bagli() ? "Bağlı değil" : ({ on: "Mikrofon alınıyor", noDevice: "VB-CABLE bulunamadı", error: "Hata" }[D.pc.mik] || (A() && A().mikAcik ? "Açılıyor…" : "Kapalı")),
+  ipucu: () => D && D.tel ? (D.tel.hint ? "Var" : "Yok") : "—", diger: () => D && D.tel ? (D.tel.other ? "Evet" : "Hayır") : "—",
+  nerede: () => ({ pc: "Bilgisayar", sessiz: "Bilgisayar", telefon: "iPhone", kutu: "Bilgisayar hoparlörü", yok: "—" }[kaynak()]),
+  kulaklik: () => !bagli() ? "—" : (D.kulaklik ? "Takılı" : "Kutuda"),
+  tDurum: () => ({ caliyor: "Çalıyor", doluyor: "Doluyor", bos: "Boş" }[st().state] || "—"),
+  doluluk: () => `${Math.round(st().bufferMs || 0)} / ${Math.round(st().targetMs || 0)} ms`, titreme: () => (st().jitterMs || 0).toFixed(1) + " ms",
+  kayma: () => ((st().driftPpm || 0) >= 0 ? "+" : "") + Math.round(st().driftPpm || 0) + " ppm", hiz: () => (st().inputHz || 0) + " Hz",
+  alinan: () => st().received ?? "—", kurtarilan: () => st().recovered ?? "—", kayip: () => st().lost ?? "—", gec: () => st().late ?? "—",
+  bosalma: () => st().underruns ?? "—", atlama: () => st().skips ?? "—",
+  rota: () => D && D.tel && D.tel.route ? D.tel.route.name : "—", rtt: () => Math.round(st().rttMs || 0) + " ms",
+  surum: () => D ? "Windows " + D.pc.surum : "",
+};
+
+// ───────────────────────── Gezinme ─────────────────────────
+const yigin = [];
+const kok = document.getElementById("yigin");
+function sayfaKur(ad) {
+  const t = SAYFA[ad];
+  const el = document.createElement("div");
+  el.className = "sayfa"; el.dataset.ad = ad;
+  const ust = ad === "ana"
+    ? `<div class="ust"><span class="sol" style="font-weight:600;font-size:15px;padding-left:6px">SyncYourPods</span><span></span><span class="sag-k"><button class="yuvarlak" data-git="ayarlar" title="Ayarlar">${SIMGE.disli.replace('<svg', '<svg width="20" height="20"')}</button></span></div>`
+    : `<div class="ust"><span class="sol"><button class="geri">${SIMGE.sol.replace('<svg', '<svg width="20" height="20"')}<span>${yigin.length > 1 ? SAYFA[yigin[yigin.length - 1].dataset.ad].baslik || "Geri" : "Geri"}</span></button></span><span class="baslik">${t.baslik}</span><span></span></div>`;
+  el.innerHTML = ust + `<div class="icerik">${t.ciz()}</div>`;
+  const g = el.querySelector(".geri"); if (g) g.onclick = geri;
+  el.addEventListener("click", tikla);
+  el.addEventListener("input", kaydirma);
+  el.addEventListener("change", kaydirmaBitti);
+  if (t.bagla) t.bagla(el);
+  return el;
+}
+function git(ad) {
+  if (ad === "ayarlar" || yigin.length) { /* geri yazısı için yığının üstü */ }
+  const onceki = yigin[yigin.length - 1];
+  const el = sayfaKur(ad);
+  el.classList.add("sag"); kok.appendChild(el); yigin.push(el);
+  guncelle();
+  void el.offsetWidth; // yerleşimi zorla: geçiş animasyon karesi beklemeden başlasın
+  el.classList.remove("sag"); if (onceki) onceki.classList.add("geride");
+}
+function geri() {
+  if (yigin.length < 2) return;
+  const el = yigin.pop(); const alt = yigin[yigin.length - 1];
+  el.classList.add("sag"); alt.classList.remove("geride");
+  setTimeout(() => el.remove(), 450);
+  guncelle();
+}
+
+// ───────────────────────── Etkileşim ─────────────────────────
+function tikla(e) {
+  const gitEl = e.target.closest("[data-git]");
+  if (gitEl && !e.target.closest("[data-tel],[data-pc]")) {
+    if (gitEl.id === "k-eq" && !telVar()) return;
+    git(gitEl.dataset.git); return;
+  }
+  const an = e.target.closest(".anahtar");
+  if (an) {
+    if (an.dataset.tel && A()) telAyar(an.dataset.tel, !A()[an.dataset.tel]);
+    if (an.dataset.pc && D) pcAyar(an.dataset.pc, !D.pc[an.dataset.pc]);
+    return;
+  }
+  const sec = e.target.closest("[data-sec]");
+  if (sec && A()) { telAyar(sec.dataset.sec, sec.dataset.deger); return; }
+  const sg = e.target.closest(".seg button");
+  if (sg && A()) {
+    const k = sg.parentElement.dataset.seg, ham = sg.dataset.deger;
+    telAyar(k, isNaN(Number(ham)) ? ham : Number(ham));
+  }
+}
+let sonGonderim = 0, bekleyen = null;
+function kaydirma(e) {
+  const r = e.target; if (r.type !== "range" || !r.dataset.tel) return;
+  let v = Number(r.value);
+  if (r.dataset.orta && Math.abs(v) < 0.06) v = 0;
+  surukleniyor = { k: r.dataset.tel, v };
+  if (A()) A()[r.dataset.tel] = v;
+  dolulukCiz(r);
+  yazilariGuncelle();
+  // En fazla 20 kez/sn gönder.
+  const simdi = performance.now();
+  if (simdi - sonGonderim > 50) { sonGonderim = simdi; yolla({ k: "set", v: { [r.dataset.tel]: v } }); }
+  else { clearTimeout(bekleyen); bekleyen = setTimeout(() => yolla({ k: "set", v: { [r.dataset.tel]: v } }), 60); }
+}
+function kaydirmaBitti(e) {
+  const r = e.target; if (r.type !== "range" || !r.dataset.tel) return;
+  let v = Number(r.value); if (r.dataset.orta && Math.abs(v) < 0.06) { v = 0; r.value = 0; }
+  yolla({ k: "set", v: { [r.dataset.tel]: v } });
+  setTimeout(() => { surukleniyor = null; }, 400);
+}
+const dolulukCiz = (r) => r.style.setProperty("--dolu", ((r.value - r.min) / (r.max - r.min) * 100) + "%");
+
+// Özel ekolayzer: dikey kaydırıcılar
+function dikeyleriCiz(k) {
+  const kap = document.getElementById("dikeyler"); if (!kap) return;
+  if (!kap.children.length) {
+    const et = ["32", "64", "125", "250", "500", "1K", "2K", "4K", "8K", "16K"];
+    kap.innerHTML = et.map((x, i) => `<div class="dikey" data-i="${i}"><span class="db"></span><div class="ray"><div class="dolu"></div><div class="top"></div></div><span>${x}</span></div>`).join("");
+    kap.querySelectorAll(".ray").forEach((ray) => {
+      const i = Number(ray.parentElement.dataset.i);
+      const ayarla = (y) => {
+        const h = ray.clientHeight; let v = (h / 2 - y) / (h / 2) * 12;
+        v = Math.max(-12, Math.min(12, Math.round(v * 2) / 2));
+        const a = A(); if (!a) return;
+        const yeni = (a.eqOzel || Array(10).fill(0)).slice(); if (yeni[i] === v) return;
+        yeni[i] = v; a.eqOzel = yeni; surukleniyor = { k: "eqOzel", v: yeni };
+        dikeyleriCiz(yeni); SAYFA.eq.guncelle();
+        yolla({ k: "set", v: { eqOzel: yeni } });
+      };
+      ray.addEventListener("pointerdown", (e) => { ray.setPointerCapture(e.pointerId); ayarla(e.offsetY); });
+      ray.addEventListener("pointermove", (e) => { if (ray.hasPointerCapture(e.pointerId)) ayarla(e.offsetY); });
+      ray.addEventListener("pointerup", () => setTimeout(() => { surukleniyor = null; }, 400));
+    });
+  }
+  kap.querySelectorAll(".dikey").forEach((d) => {
+    const i = Number(d.dataset.i), v = k[i] || 0, h = d.querySelector(".ray").clientHeight || 150;
+    const y = h / 2 - v / 12 * (h / 2);
+    d.querySelector(".top").style.top = y + "px";
+    const dolu = d.querySelector(".dolu"); dolu.style.top = Math.min(y, h / 2) + "px"; dolu.style.height = Math.abs(y - h / 2) + "px";
+    const db = d.querySelector(".db"); db.textContent = v === 0 ? "0" : (v > 0 ? "+" : "") + (Number.isInteger(v) ? v : v.toFixed(1)); db.classList.toggle("d", v !== 0);
+  });
+}
+
+// ───────────────────────── Güncelleme ─────────────────────────
+const metin = (id, t) => { const e = document.getElementById(id); if (e && e.textContent !== t) e.textContent = t; };
+const goster = (id, g) => { const e = document.getElementById(id); if (e) e.classList.toggle("gizli", !g); };
+function kutu(id, acik, alt) { const e = document.getElementById(id); if (!e) return; e.classList.toggle("acik", !!acik); const s = document.getElementById(id + "-a"); if (s && s.textContent !== alt) s.textContent = alt; }
+function yazilariGuncelle() {
+  const ust = yigin[yigin.length - 1]; if (!ust) return;
+  ust.querySelectorAll("[data-yaz]").forEach((e) => { const f = YAZ[e.dataset.yaz]; if (f) { const t = String(f()); if (e.textContent !== t) e.textContent = t; } });
+}
+function guncelle() {
+  const ust = yigin[yigin.length - 1]; if (!ust || !D) return;
+  const a = A();
+  const t = SAYFA[ust.dataset.ad];
+  ust.querySelector(".icerik").classList.toggle("pasif", !!t.telGerek && !a);
+  if (t.guncelle) t.guncelle();
+  ust.querySelectorAll(".anahtar").forEach((e) => {
+    const v = e.dataset.tel ? (a && a[e.dataset.tel]) : (D.pc[e.dataset.pc]);
+    e.classList.toggle("acik", !!v);
+  });
+  ust.querySelectorAll("input[type=range][data-tel]").forEach((r) => {
+    if (!a) return;
+    if (!(surukleniyor && surukleniyor.k === r.dataset.tel) && document.activeElement !== r) r.value = a[r.dataset.tel];
+    dolulukCiz(r);
+  });
+  ust.querySelectorAll("[data-sec]").forEach((e) => e.classList.toggle("secili", !!a && String(a[e.dataset.sec]) === e.dataset.deger));
+  ust.querySelectorAll("[data-seg]").forEach((s) => s.querySelectorAll("button").forEach((b) => b.classList.toggle("secili", !!a && String(a[s.dataset.seg]) === b.dataset.deger)));
+  ust.querySelectorAll("[data-goster]").forEach((e) => e.classList.toggle("gizli", !(a && a[e.dataset.goster])));
+  ust.querySelectorAll("[data-goster-esit]").forEach((e) => { const [k, v] = e.dataset.gosterEsit.split("="); e.classList.toggle("gizli", !(a && String(a[k]) === v)); });
+  yazilariGuncelle();
+}
+
+// ───────────────────────── Başlangıç ─────────────────────────
+function baslat() {
+  const el = sayfaKur("ana"); kok.appendChild(el); yigin.push(el);
+  if (ipcVar) { yolla({ k: "hazir" }); return; }
+  // Önizleme (tarayıcıda açılınca): örnek durum. ?sayfa=eq&durum=telefon|bekle|kutu
+  const q = new URLSearchParams(location.search);
+  const hal = q.get("durum") || "pc";
+  const hz = [["duz","Düz",[0,0,0,0,0,0,0,0,0,0]],["bas","Bas Güçlendirici",[6,5,4,2.5,1,0,0,0,0,0]],["basAzalt","Bas Azaltıcı",[-6,-5,-4,-2.5,-1,0,0,0,0,0]],["tiz","Tiz Güçlendirici",[0,0,0,0,0,.5,1.5,3,4.5,5.5]],["vokal","Vokal",[-2,-1.5,-1,.5,2.5,3.5,3,1.5,0,-1]],["podcast","Konuşma",[-6,-4,-2,0,2,3.5,3.5,2,0,-2]],["film","Film",[4,3,1.5,0,-.5,0,1.5,2.5,2,1]]].map(([id,ad,k])=>({id,ad,k}));
+  const ornek = {
+    pc: { ad: "EFE-PC", cihaz: "Hoparlör (Realtek(R) Audio)", caliyor: true, baslik: "lofi hip hop radio – beats to relax/study to", sanatci: "Lofi Girl", uygulama: "Chrome", mik: "off", pcSesiniKapat: true, medyaDuraklat: true, acilis: true, surum: "1.1.0", site: "https://example.com" },
+    telefonAdi: hal === "bekle" ? null : "iPhone", kulaklik: hal !== "kutu",
+    tel: hal === "bekle" ? null : {
+      settings: { ses: .8, denge: 0, mono: false, yukseltici: "kapali", eqAcik: q.get("sayfa") === "eq", eqHazir: q.get("ozel") ? "ozel" : "bas", eqOzel: [4,3,1,0,-1,0,1.5,3,2,1], otomatikGecis: true, gecisModu: "sustur", kisSeviyesi: .25, donusGecikmesi: .6, gecisSuresi: .25, gecikme: "enDusuk", gorusmeKipi: false, mikAcik: false, mikYuksekKalite: true, mikSesYalitimi: false },
+      route: { name: "Efe’nin AirPods Pro’su", headphones: hal !== "kutu", symbol: "airpodspro" }, focus: hal === "telefon" ? "phone" : "pc", hint: hal === "telefon", other: hal === "telefon",
+      stats: { bufferMs: 18, targetMs: 20, jitterMs: 4.1, driftPpm: 37, inputHz: 48000, received: 18234, recovered: 41, lost: 2, late: 3, underruns: 0, skips: 0, state: "caliyor", btMs: 162, rttMs: 4, level: .4 },
+      eqPresets: hz,
+    },
+  };
+  window.durum(ornek);
+  const s = q.get("sayfa"); if (s && SAYFA[s]) { if (s !== "ayarlar") git("ayarlar"); git(s); }
+}
+baslat();
+</script>
+</body>
+</html>

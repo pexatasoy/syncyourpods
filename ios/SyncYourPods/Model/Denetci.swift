@@ -63,6 +63,9 @@ final class Denetci {
     @ObservationIgnored private var kopmaAni: Date?
     @ObservationIgnored private var elleKesildi = false
     @ObservationIgnored private let telefonId: String
+    /// PC'de panel açık: durum sık gönderilir.
+    @ObservationIgnored private var pcIzliyor = false
+    @ObservationIgnored private var sonGonderilenRota: Rota?
 
     init() {
         let d = UserDefaults.standard
@@ -213,6 +216,7 @@ final class Denetci {
                 baglanti?.gonder(.settings(pauseMedia: ayarlar.medyaDuraklat, muteLocal: ayarlar.pcSesiniKapat))
                 if telefonda { baglanti?.gonder(.focus(phone: true)) }
                 if ayarlar.mikAcik { baglanti?.gonder(.mic(on: true)) }
+                telefonDurumuGonder(tam: true)
             case .wait:
                 durum = .izinBekleniyor(bulunan.ad)
             case .denied:
@@ -223,6 +227,11 @@ final class Denetci {
                 // PC'nin tepsi menüsünden değiştirildiyse buraya da yansısın.
                 if d.pauseMedia != ayarlar.medyaDuraklat { ayarlar.medyaDuraklat = d.pauseMedia }
                 if let m = d.muteLocal, m != ayarlar.pcSesiniKapat { ayarlar.pcSesiniKapat = m }
+            case let .set(d):
+                if let yeni = ayarlar.birlestir(d), yeni != ayarlar { ayarlar = yeni }
+            case let .watch(on):
+                pcIzliyor = on
+                if on { telefonDurumuGonder(tam: true) }
             case let .micState(s):
                 mikDurumu = s
                 if s == "noDevice" || s == "error", ayarlar.mikAcik {
@@ -233,6 +242,7 @@ final class Denetci {
             }
         case let .koptu(neden):
             baglanti = nil
+            pcIzliyor = false
             pc = nil
             mikDurumu = "off"
             if case .reddedildi = durum { return }
@@ -291,6 +301,8 @@ final class Denetci {
         rota = Self.rotaOku()
         motor.kulaklikYok = !rota.kulaklik
         cikisGecikmesiMs = motor.cikisGecikmesiMs
+        // AirPods kutuya girince PC kendi sesini geri açsın (ve geri gelince yeniden sustursun).
+        if rota != sonGonderilenRota { telefonDurumuGonder(tam: false) }
     }
 
     static func rotaOku() -> Rota {
@@ -332,6 +344,7 @@ final class Denetci {
         } else {
             motor.odakKazanci(odak.pcKazanci)
         }
+        if pcIzliyor { telefonDurumuGonder(tam: false) }
     }
 
     private func telefondaAyarla(_ t: Bool) {
@@ -341,7 +354,36 @@ final class Denetci {
         if durum.bagli {
             baglanti?.gonder(.focus(phone: t))
             gecisSayaci += 1
+            telefonDurumuGonder(tam: false)
         }
+    }
+
+    // MARK: PC paneline durum
+
+    /// Ayarlar, rota, odak ve (panel açıksa) ölçümler PC'ye. `tam`: ekolayzer hazırları da.
+    private func telefonDurumuGonder(tam: Bool) {
+        guard durum.bagli, let b = baglanti, !ornek else { return }
+        sonGonderilenRota = rota
+        let (i, sev) = motor.olcum()
+        var m: [String: Any] = [
+            "t": "phone",
+            "settings": ayarlar.sozluk(),
+            "route": ["name": rota.ad, "headphones": rota.kulaklik, "symbol": rota.simge],
+            "focus": telefonda ? "phone" : "pc",
+            "hint": ipucu, "other": digerSes,
+            "mic": mikDurumu,
+            "stats": [
+                "bufferMs": i.tamponMs, "targetMs": i.hedefMs, "jitterMs": i.titremeMs, "driftPpm": i.kaymaPpm,
+                "inputHz": i.girisHizi, "received": i.alinan, "recovered": i.kurtarilan, "lost": i.kayip,
+                "late": i.gec, "underruns": i.bosalma, "skips": i.atlama, "state": i.durum.rawValue,
+                "btMs": motor.cikisGecikmesiMs, "rttMs": b.rttMs ?? 0, "level": sev,
+            ] as [String: Any],
+        ]
+        if tam {
+            m["eqPresets"] = Ekolayzer.hazirlar.map { ["id": $0.id, "ad": $0.ad, "k": $0.kazanclar] as [String: Any] }
+            m["eqBands"] = Ekolayzer.etiketler
+        }
+        if let d = try? JSONSerialization.data(withJSONObject: m) { b.gonder(.ham(d)) }
     }
 
     // MARK: Ölçüm (yalnız ekran açıkken)
@@ -372,6 +414,7 @@ final class Denetci {
         if let v = try? JSONEncoder().encode(ayarlar) {
             UserDefaults.standard.set(v, forKey: "ayarlar")
         }
+        defer { telefonDurumuGonder(tam: false) }
         motor.uygula(ayarlar)
         odakAyarla()
         if eski.medyaDuraklat != ayarlar.medyaDuraklat || eski.pcSesiniKapat != ayarlar.pcSesiniKapat {

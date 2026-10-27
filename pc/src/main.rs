@@ -12,6 +12,8 @@ mod paket;
 mod protokol;
 mod sunucu;
 #[cfg(windows)]
+mod panel;
+#[cfg(windows)]
 mod tepsi;
 mod yakala;
 
@@ -64,6 +66,8 @@ fn main() {
         medya: Mutex::new(None),
         mik: Mutex::new(Default::default()),
         mik_acik: AtomicBool::new(false),
+        telefon: Mutex::new(None),
+        kulaklik: AtomicBool::new(true),
         onay,
     });
 
@@ -86,7 +90,7 @@ fn main() {
     let mdns = std::env::var_os("SYP_MDNS").and_then(|_| kesif::yayinla(&pc_adi, &pc_id));
 
     #[cfg(windows)]
-    tepsi::calistir(o.clone());
+    panel::calistir(o.clone());
     #[cfg(not(windows))]
     loop {
         std::thread::sleep(std::time::Duration::from_secs(3600));

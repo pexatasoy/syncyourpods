@@ -249,6 +249,20 @@ final class KaristiriciTestleri: XCTestCase {
         XCTAssertEqual(l.last!, 0, accuracy: 0.001)
     }
 
+    func testBirlestir() {
+        var a = Ayarlar()
+        a.ses = 0.3
+        let b = a.birlestir(Data("{\"ses\":0.9,\"eqAcik\":true,\"gecikme\":\"kararli\",\"bilinmeyen\":5}".utf8))!
+        XCTAssertEqual(b.ses, 0.9, accuracy: 0.0001)
+        XCTAssertTrue(b.eqAcik)
+        XCTAssertEqual(b.gecikme, .kararli)
+        XCTAssertEqual(b.gecisModu, a.gecisModu)
+        XCTAssertEqual(Mesaj.coz(Data("{\"t\":\"watch\",\"on\":true}".utf8)), .watch(true))
+        if case let .set(d)? = Mesaj.coz(Data("{\"t\":\"set\",\"settings\":{\"mono\":true}}".utf8)) {
+            XCTAssertTrue(a.birlestir(d)!.mono)
+        } else { XCTFail("set çözülemedi") }
+    }
+
     func testAyarlarGeriyeUyumlu() throws {
         let eski = Data("{\"ses\":0.5,\"gecisModu\":\"kis\"}".utf8)
         let a = try JSONDecoder().decode(Ayarlar.self, from: eski)

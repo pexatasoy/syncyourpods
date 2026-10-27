@@ -81,6 +81,23 @@ public struct Ayarlar: Codable, Equatable, Sendable {
         surum = v.surum
     }
 
+    /// PC panelinden gelen kısmi ayarları uygular (bilinmeyen anahtarlar yok sayılır).
+    public func birlestir(_ kismi: Data) -> Ayarlar? {
+        guard let kendi = try? JSONEncoder().encode(self),
+              var mevcut = (try? JSONSerialization.jsonObject(with: kendi)) as? [String: Any],
+              let ek = (try? JSONSerialization.jsonObject(with: kismi)) as? [String: Any] else { return nil }
+        let bilinen = Set(mevcut.keys).union(["sonPC"])
+        for (k, v) in ek where bilinen.contains(k) { mevcut[k] = v }
+        guard let d = try? JSONSerialization.data(withJSONObject: mevcut) else { return nil }
+        return try? JSONDecoder().decode(Ayarlar.self, from: d)
+    }
+
+    /// PC paneline gidecek JSON nesnesi.
+    public func sozluk() -> [String: Any] {
+        guard let d = try? JSONEncoder().encode(self), let o = (try? JSONSerialization.jsonObject(with: d)) as? [String: Any] else { return [:] }
+        return o
+    }
+
     /// Ekolayzerde şu an geçerli 10 bant kazancı (dB).
     public var eqKazanclari: [Float] {
         if eqHazir == "ozel" { return eqOzel }

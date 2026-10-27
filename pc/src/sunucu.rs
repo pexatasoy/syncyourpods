@@ -37,6 +37,18 @@ fn istemci(o: Arc<Ortak>, s: TcpStream) -> std::io::Result<()> {
     let sonuc = (|| -> std::io::Result<()> {
         for satir in okuyucu.lines() {
             let satir = satir?;
+            // Telefon durumu serbest biçimli JSON: türlü ayrıştırmadan önce yakala.
+            if benim_oturum != 0 && satir.contains("\"phone\"") {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(&satir) {
+                    if v.get("t").and_then(|t| t.as_str()) == Some("phone") {
+                        if o.oturum.load(Ordering::SeqCst) != benim_oturum {
+                            return Ok(());
+                        }
+                        telefon_durumu(&o, v);
+                        continue;
+                    }
+                }
+            }
             let m: Mesaj = match serde_json::from_str(&satir) {
                 Ok(m) => m,
                 Err(_) => continue,
@@ -121,8 +133,29 @@ fn selamla(o: &Arc<Ortak>, s: &TcpStream, id: &str, ad: &str) -> std::io::Result
     Ok(oturum)
 }
 
+fn telefon_durumu(o: &Arc<Ortak>, mut v: serde_json::Value) {
+    let kulaklik = v.pointer("/route/headphones").and_then(|x| x.as_bool()).unwrap_or(true);
+    if o.kulaklik.swap(kulaklik, Ordering::SeqCst) != kulaklik {
+        gunluk!("{}", if kulaklik { "kulaklık geri geldi → PC sesi yeniden AirPods'ta" } else { "kulaklık çıktı (kutuda) → PC kendi sesine döndü" });
+    }
+    // Ekolayzer hazırları yalnız "tam" mesajda gelir: sonrakilerde kaybolmasın.
+    let mut t = o.telefon.lock().unwrap();
+    if let Some(eski) = t.as_ref() {
+        for k in ["eqPresets", "eqBands"] {
+            if v.get(k).is_none() {
+                if let Some(x) = eski.get(k) {
+                    v[k] = x.clone();
+                }
+            }
+        }
+    }
+    *t = Some(v);
+}
+
 fn ayril(o: &Arc<Ortak>) {
     o.aktif.store(false, Ordering::SeqCst);
+    *o.telefon.lock().unwrap() = None;
+    o.kulaklik.store(true, Ordering::SeqCst);
     *o.telefon_udp.lock().unwrap() = None;
     *o.yazici.lock().unwrap() = None;
     crate::mikrofon::ayarla(o, false);

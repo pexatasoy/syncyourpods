@@ -39,7 +39,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.atasoy.syncyourpods
         PRODUCT_NAME: SyncYourPods
         DEVELOPMENT_TEAM: 225UD67593
-        MARKETING_VERSION: "1.0.0"
+        MARKETING_VERSION: "1.1.0"
         # ⚠️ CI bunu koşu numarasıyla ezer.
         CURRENT_PROJECT_VERSION: "1"
         # Swift 5 kipi: Xcode 26'nın Swift 6 katı eşzamanlılık kipi ek hata üretir (Medowl/teamplanOS'ta görüldü).

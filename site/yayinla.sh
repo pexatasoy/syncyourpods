@@ -18,7 +18,7 @@ IPA=$(ls /root/syncyourpods/ios/cikti/*.ipa 2>/dev/null | head -1)
 if [ -n "$IPA" ]; then
   cp "$IPA" "$HEDEF/SyncYourPods.ipa"
   DERLEME=$(cat /root/syncyourpods/ios/cikti/derleme.txt 2>/dev/null | tr -d '[:space:]')
-  SURUM="1.0.0"
+  SURUM=$(unzip -p "$IPA" 'Payload/*.app/Info.plist' | python3 -c "import plistlib,sys;print(plistlib.loads(sys.stdin.buffer.read())['CFBundleShortVersionString'])" 2>/dev/null || echo 1.0.0)
   cat > "$HEDEF/manifest.xml" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

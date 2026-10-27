@@ -1,11 +1,7 @@
-//! Görev çubuğu simgesi ve menüsü. Penceresi yok: her şey iPhone'dan yönetilir,
-//! burada yalnız durum ve PC'ye özgü birkaç anahtar var.
+//! Windows yardımcıları: tek kopya, uyarı/onay pencereleri, açılışta başlatma, tepsi simgesi çizimi.
+//! Tepsi ve panel döngüsü panel.rs'te.
 
-use crate::ortak::{MedyaIstek, Ortak};
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
-use tray_icon::menu::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem};
-use tray_icon::{Icon, TrayIconBuilder};
+use tray_icon::Icon;
 use windows::core::{w, HSTRING};
 use windows::Win32::Foundation::{GetLastError, ERROR_ALREADY_EXISTS, ERROR_SUCCESS};
 use windows::Win32::System::Registry::*;
@@ -37,11 +33,11 @@ pub fn onay_sor(telefon: &str) -> bool {
     }
 }
 
-fn acilista_mi() -> bool {
+pub fn acilista_mi() -> bool {
     unsafe { RegGetValueW(HKEY_CURRENT_USER, &HSTRING::from(ACILIS_ANAHTARI), &HSTRING::from(ACILIS_DEGERI), RRF_RT_REG_SZ, None, None, None) == ERROR_SUCCESS }
 }
 
-fn acilis_ayarla(ac: bool) {
+pub fn acilis_ayarla(ac: bool) {
     unsafe {
         if ac {
             let Ok(yol) = std::env::current_exe() else { return };
@@ -61,7 +57,7 @@ fn acilis_ayarla(ac: bool) {
 }
 
 /// 32×32 simge: halka + nokta. Bekliyorken gri, bağlıyken beyaz halka + mavi nokta.
-fn simge(bagli: bool, telefonda: bool) -> Icon {
+pub fn simge(bagli: bool, telefonda: bool) -> Icon {
     let n = 32usize;
     let mut p = vec![0u8; n * n * 4];
     let (halka, nokta): ([u8; 3], [u8; 3]) = if !bagli {
@@ -85,132 +81,4 @@ fn simge(bagli: bool, telefonda: bool) -> Icon {
         }
     }
     Icon::from_rgba(p, n as u32, n as u32).expect("simge")
-}
-
-pub fn calistir(o: Arc<Ortak>) {
-    let menu = Menu::new();
-    let baslik = MenuItem::new("SyncYourPods", false, None);
-    let durum = MenuItem::new("iPhone bekleniyor…", false, None);
-    let ses = MenuItem::new("", false, None);
-    let (duraklat0, sustur0) = {
-        let a = o.ayarlar.lock().unwrap();
-        (a.medya_duraklat, a.pc_sesini_kapat)
-    };
-    let duraklat = CheckMenuItem::new("iPhone sesi gelince PC medyasını duraklat", true, duraklat0, None);
-    let sustur = CheckMenuItem::new("Bağlıyken PC’nin kendi sesi kapalı", true, sustur0, None);
-    let acilis = CheckMenuItem::new("Windows açılınca başlat", true, acilista_mi(), None);
-    let unut = MenuItem::new("Eşlenmiş iPhone’ları unut", true, None);
-    let gunluk = MenuItem::new("Günlüğü aç", true, None);
-    let cikis = MenuItem::new("Çıkış", true, None);
-    let _ = menu.append_items(&[
-        &baslik,
-        &durum,
-        &ses,
-        &PredefinedMenuItem::separator(),
-        &duraklat,
-        &sustur,
-        &acilis,
-        &PredefinedMenuItem::separator(),
-        &unut,
-        &gunluk,
-        &cikis,
-    ]);
-    let tepsi = match TrayIconBuilder::new().with_menu(Box::new(menu)).with_tooltip("SyncYourPods — iPhone bekleniyor").with_icon(simge(false, false)).build() {
-        Ok(t) => t,
-        Err(e) => {
-            crate::gunluk!("tepsi simgesi kurulamadı: {}", e);
-            loop {
-                std::thread::sleep(std::time::Duration::from_secs(3600));
-            }
-        }
-    };
-
-    // İlk açılışta açılışa eklemeyi SOR (sormadan eklemek hem kaba hem de virüs taramalarını kuşkulandırıyor).
-    let ilk = crate::ayarlar::klasor().join(".acilis-soruldu");
-    if !ilk.exists() {
-        let _ = std::fs::write(&ilk, b"1");
-        let evet = unsafe {
-            MessageBoxW(None, w!("SyncYourPods çalışıyor; simgesi saatin yanında.\n\nWindows açılınca kendiliğinden başlasın mı?"), w!("SyncYourPods"),
-                MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND) == IDYES
-        };
-        if evet {
-            acilis_ayarla(true);
-            acilis.set_checked(true);
-        }
-    }
-
-    let mut onceki = (None::<String>, false, false, false);
-    unsafe {
-        SetTimer(None, 0, 400, None);
-        let mut msg = MSG::default();
-        while GetMessageW(&mut msg, None, 0, 0).as_bool() {
-            let _ = TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-
-            while let Ok(olay) = MenuEvent::receiver().try_recv() {
-                if olay.id == cikis.id() {
-                    o.medya_iste(MedyaIstek::Odak(false));
-                    o.medya_iste(MedyaIstek::Kapat);
-                    o.gonder(&crate::protokol::Mesaj::Bye);
-                    o.aktif.store(false, Ordering::SeqCst);
-                    std::thread::sleep(std::time::Duration::from_millis(300));
-                    PostQuitMessage(0);
-                } else if olay.id == duraklat.id() {
-                    let mut a = o.ayarlar.lock().unwrap();
-                    a.medya_duraklat = duraklat.is_checked();
-                    a.kaydet();
-                    drop(a);
-                    o.durum_gonder();
-                } else if olay.id == sustur.id() {
-                    let mut a = o.ayarlar.lock().unwrap();
-                    a.pc_sesini_kapat = sustur.is_checked();
-                    a.kaydet();
-                    drop(a);
-                    o.durum_gonder();
-                } else if olay.id == acilis.id() {
-                    acilis_ayarla(acilis.is_checked());
-                } else if olay.id == unut.id() {
-                    let mut a = o.ayarlar.lock().unwrap();
-                    a.guvenilen.clear();
-                    a.kaydet();
-                    drop(a);
-                    uyari("Eşlenmiş iPhone’lar unutuldu. Bir dahaki bağlantıda yeniden izin istenecek.");
-                } else if olay.id == gunluk.id() {
-                    let _ = std::process::Command::new("notepad.exe").arg(crate::ayarlar::klasor().join("gunluk.txt")).spawn();
-                }
-            }
-
-            {
-                let a = o.ayarlar.lock().unwrap();
-                if duraklat.is_checked() != a.medya_duraklat { duraklat.set_checked(a.medya_duraklat); }
-                if sustur.is_checked() != a.pc_sesini_kapat { sustur.set_checked(a.pc_sesini_kapat); }
-            }
-            let d = o.durum.lock().unwrap().clone();
-            let simdi = (d.telefon.clone(), d.caliyor, d.odak_telefonda, d.mik == "on");
-            if simdi != onceki {
-                let (tel, caliyor, telefonda, mik) = (&simdi.0, simdi.1, simdi.2, simdi.3);
-                match tel {
-                    Some(t) => {
-                        durum.set_text(format!("Bağlı: {}", t));
-                        let s = if telefonda {
-                            "iPhone sesi öncelikte"
-                        } else if caliyor {
-                            "PC sesi AirPods’ta"
-                        } else {
-                            "PC sessiz"
-                        };
-                        ses.set_text(if mik { format!("{} · mikrofon açık", s) } else { s.to_string() });
-                        let _ = tepsi.set_tooltip(Some(format!("SyncYourPods — {}", s)));
-                    }
-                    None => {
-                        durum.set_text("iPhone bekleniyor…");
-                        ses.set_text("iPhone’da SyncYourPods’u aç");
-                        let _ = tepsi.set_tooltip(Some("SyncYourPods — iPhone bekleniyor"));
-                    }
-                }
-                let _ = tepsi.set_icon(Some(simge(tel.is_some(), telefonda)));
-                onceki = simdi;
-            }
-        }
-    }
 }

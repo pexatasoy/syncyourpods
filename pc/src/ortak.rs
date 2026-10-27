@@ -40,6 +40,10 @@ pub struct Ortak {
     pub medya: Mutex<Option<Sender<MedyaIstek>>>,
     pub mik: Mutex<MikTampon>,
     pub mik_acik: AtomicBool,
+    /// Telefonun son bildirdiği durum ("phone" mesajı: ayarlar, rota, odak, ölçümler). Panel bunu gösterir.
+    pub telefon: Mutex<Option<serde_json::Value>>,
+    /// Telefonda kulaklık takılı mı. AirPods kutuya girince false: PC kendi sesini geri açar, yayın durur.
+    pub kulaklik: AtomicBool,
     pub onay: Box<dyn Fn(&str) -> bool + Send + Sync>,
 }
 
@@ -67,6 +71,9 @@ impl Ortak {
     }
 
     pub fn ses_gonder(&self, paket: &[u8]) {
+        if !self.kulaklik.load(Ordering::Relaxed) {
+            return;
+        }
         if let Some(a) = *self.telefon_udp.lock().unwrap() {
             let _ = self.udp.send_to(paket, a);
         }

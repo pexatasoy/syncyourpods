@@ -111,6 +111,11 @@ pub enum Mesaj {
     #[serde(rename = "micstate")]
     MicState { state: String },
     Pong { ts: u64 },
+    // PC paneli → telefon
+    /// Kısmi telefon ayarları (iPhone'daki Ayarlar'ın JSON anahtarları).
+    Set { settings: serde_json::Value },
+    /// Panel açık mı: açıkken telefon durumunu sık yollar.
+    Watch { on: bool },
 }
 
 #[cfg(test)]
