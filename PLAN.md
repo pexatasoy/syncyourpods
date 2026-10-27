@@ -58,3 +58,10 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
   (Ad Hoc, iPhone 16, profil 2027-09-04'e kadar) indirme sayfasında. Kurulum bildirimi manifest.xml (Caddy .plist'e tür vermiyor).
 - Gerçek cihazda doğrulanacak: (1) hint arka planda geliyor mu (Tanılama ekranı), (2) gecikme/kesinti, (3) WASAPI loopback
   gerçek PC'de, (4) VB-CABLE mikrofonu, (5) medya duraklat/sürdür (Chrome/Spotify).
+- 2026-10-27 akşam: Opera/Defender exe'yi "virüs" diye engelledi. CI'da Defender güncel tanımlarla 3 sürüm de TEMİZ →
+  bulut ML (imzasız yeni dosya) kaynaklı. Windows artık MSVC ile GitHub Windows koşucusunda derleniyor (`pc/ci-windows.yml`,
+  akış `syncyourpods-windows.yml`, Defender taraması dahil). Kalıcı çözüm kod imzalama sertifikası (ücretli) — Efe'ye soruldu.
+- Efe isteği: bağlıyken PC'nin kendi sesi gelmesin → endpoint SetMute (loopback susturulmuş aygıtı da yakalıyor) + oturum
+  ölçeriyle denetim (yakalama kesilirse vazgeçer) + çökme izi `susturulan-aygit.txt`. Gecikme: IAudioClient3 en kısa motor
+  periyodu, varsayılan En düşük, deneysel "Görüşme kipi" (HFP). iPhone derleme 3.
+
