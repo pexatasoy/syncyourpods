@@ -108,7 +108,7 @@
 <script>
   // itms-services bağlantısı mutlak adres ister.
   const taban = location.href.replace(/[^/]*([?#].*)?$/, "");
-  document.getElementById("ios").href = "itms-services://?action=download-manifest&url=" + encodeURIComponent(taban + "manifest.plist");
+  document.getElementById("ios").href = "itms-services://?action=download-manifest&url=" + encodeURIComponent(taban + "manifest.xml");
   fetch("surum.txt", { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(t => {
     if (t.trim()) document.getElementById("ios-surum").textContent = "Sürüm " + t.trim() + ".";
   }).catch(() => {});

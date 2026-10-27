@@ -54,6 +54,7 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 
 ## ▶ KALDIĞIMIZ YER
 - 2026-10-27: Windows programı + çekirdek + iPhone uygulaması + indirme sayfası yazıldı. Rust testleri, Swift çekirdek
-  testleri (12) ve Rust↔Swift uçtan uca deneme geçti. iPhone derlemesi CI'da; imza için SYNC_PROFIL gizli değişkeni bekleniyor.
+  testleri (12) ve Rust↔Swift uçtan uca deneme geçti. SYNC_PROFIL Efe onayıyla yazıldı (2026-10-27); iPhone derleme 2
+  (Ad Hoc, iPhone 16, profil 2027-09-04'e kadar) indirme sayfasında. Kurulum bildirimi manifest.xml (Caddy .plist'e tür vermiyor).
 - Gerçek cihazda doğrulanacak: (1) hint arka planda geliyor mu (Tanılama ekranı), (2) gecikme/kesinti, (3) WASAPI loopback
   gerçek PC'de, (4) VB-CABLE mikrofonu, (5) medya duraklat/sürdür (Chrome/Spotify).
