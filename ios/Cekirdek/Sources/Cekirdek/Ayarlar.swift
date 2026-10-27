@@ -23,8 +23,12 @@ public struct Ayarlar: Codable, Equatable, Sendable {
     public var donusGecikmesi = 0.6
     public var gecisSuresi = 0.25
     public var medyaDuraklat = true
+    /// Bağlıyken PC'nin kendi hoparlörü/kulaklığı sussun.
+    public var pcSesiniKapat = true
     // Gecikme
-    public var gecikme = GecikmeModu.dengeli
+    public var gecikme = GecikmeModu.enDusuk
+    /// Deneysel: AirPods'u görüşme (HFP) yoluna alır. Bluetooth gecikmesi çok düşer, ses mono ve daha boğuk olur.
+    public var gorusmeKipi = false
     // Mikrofon
     public var mikAcik = false
     public var mikYuksekKalite = true
@@ -36,6 +40,8 @@ public struct Ayarlar: Codable, Equatable, Sendable {
     public var titresim = true
     /// Tanılama: yalnız "öncelikli ses" ipucu yerine telefondaki HER sesi (oyun, uygulama sesleri) sayar.
     public var genisAlgilama = false
+    /// Kayıt biçimi sürümü: varsayılan değişince eski kayıtları taşımak için.
+    public var surum = 2
 
     public init() {}
 
@@ -57,7 +63,9 @@ public struct Ayarlar: Codable, Equatable, Sendable {
         donusGecikmesi = try c.decodeIfPresent(Double.self, forKey: .donusGecikmesi) ?? v.donusGecikmesi
         gecisSuresi = try c.decodeIfPresent(Double.self, forKey: .gecisSuresi) ?? v.gecisSuresi
         medyaDuraklat = try c.decodeIfPresent(Bool.self, forKey: .medyaDuraklat) ?? v.medyaDuraklat
+        pcSesiniKapat = try c.decodeIfPresent(Bool.self, forKey: .pcSesiniKapat) ?? v.pcSesiniKapat
         gecikme = try c.decodeIfPresent(GecikmeModu.self, forKey: .gecikme) ?? v.gecikme
+        gorusmeKipi = try c.decodeIfPresent(Bool.self, forKey: .gorusmeKipi) ?? v.gorusmeKipi
         mikAcik = try c.decodeIfPresent(Bool.self, forKey: .mikAcik) ?? v.mikAcik
         mikYuksekKalite = try c.decodeIfPresent(Bool.self, forKey: .mikYuksekKalite) ?? v.mikYuksekKalite
         mikSesYalitimi = try c.decodeIfPresent(Bool.self, forKey: .mikSesYalitimi) ?? v.mikSesYalitimi
@@ -65,6 +73,12 @@ public struct Ayarlar: Codable, Equatable, Sendable {
         sonPC = try c.decodeIfPresent(String.self, forKey: .sonPC)
         titresim = try c.decodeIfPresent(Bool.self, forKey: .titresim) ?? v.titresim
         genisAlgilama = try c.decodeIfPresent(Bool.self, forKey: .genisAlgilama) ?? v.genisAlgilama
+        let eskiSurum = try c.decodeIfPresent(Int.self, forKey: .surum) ?? 1
+        if eskiSurum < 2 {
+            // 1.0'da varsayılan "Dengeli" idi; düşük gecikme varsayılan oldu.
+            if gecikme == .dengeli { gecikme = .enDusuk }
+        }
+        surum = v.surum
     }
 
     /// Ekolayzerde şu an geçerli 10 bant kazancı (dB).

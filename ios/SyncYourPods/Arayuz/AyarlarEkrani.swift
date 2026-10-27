@@ -138,6 +138,12 @@ struct SesEkrani: View {
             }
 
             Section {
+                Toggle("Bilgisayarın kendi sesi kapalı", isOn: $d.ayarlar.pcSesiniKapat)
+            } footer: {
+                Text("Bağlıyken bilgisayarın hoparlörü ya da kulaklığı susar, ses yalnız AirPods’ta olur. Bağlantı bitince eski hâline döner.")
+            }
+
+            Section {
                 Picker("Ses yükseltici", selection: $d.ayarlar.yukseltici) {
                     Text("Kapalı").tag(Yukseltici.kapali)
                     Text("Hafif").tag(Yukseltici.hafif)
@@ -408,7 +414,15 @@ struct GecikmeEkrani: View {
                 SecimSatiri(baslik: "Dengeli", aciklama: "Çoğu ev ağı için en iyisi.", secili: d.ayarlar.gecikme == .dengeli) { d.ayarlar.gecikme = .dengeli }
                 SecimSatiri(baslik: "Kararlı", aciklama: "Müzik ve podcast için. Kalabalık ağda bile kesilmez.", secili: d.ayarlar.gecikme == .kararli) { d.ayarlar.gecikme = .kararli }
             } footer: {
-                Text("Tampon, ağın o anki durumuna göre kendini ayarlar. Bluetooth’un payı AirPods’a ait: onu hiçbir uygulama düşüremez.")
+                Text("Tampon, ağın o anki durumuna göre kendini ayarlar.")
+            }
+
+            Section {
+                Toggle("Görüşme kipi", isOn: $d.ayarlar.gorusmeKipi)
+            } header: {
+                Text("Deneysel")
+            } footer: {
+                Text("En büyük pay Bluetooth’un. Görüşme kipinde AirPods telefon görüşmesindeki gibi bağlanır: gecikme belirgin düşer ama ses mono ve daha boğuk olur. Oyun ve dudak senkronu için dene, müzik için kapalı tut.")
             }
         }
         .navigationTitle("Gecikme")

@@ -25,6 +25,9 @@ fn main() {
     if !tepsi::tek_ornek() {
         return;
     }
+    // Önceki oturum çökmüş ve PC'yi sessiz bırakmışsa önce onu düzelt.
+    #[cfg(windows)]
+    yakala::win::kurtar();
     let a = ayarlar::Ayarlar::yukle();
     let (pc_adi, pc_id) = (ayarlar::pc_adi(), a.pc_id.clone());
     gunluk!("SyncYourPods {} başlıyor — {}", env!("CARGO_PKG_VERSION"), pc_adi);

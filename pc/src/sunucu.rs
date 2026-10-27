@@ -58,9 +58,12 @@ fn istemci(o: Arc<Ortak>, s: TcpStream) -> std::io::Result<()> {
                     o.durum.lock().unwrap().odak_telefonda = phone;
                     o.medya_iste(MedyaIstek::Odak(phone));
                 }
-                Mesaj::Settings { pause_media } => {
+                Mesaj::Settings { pause_media, mute_local } => {
                     let mut a = o.ayarlar.lock().unwrap();
                     a.medya_duraklat = pause_media;
+                    if let Some(m) = mute_local {
+                        a.pc_sesini_kapat = m;
+                    }
                     a.kaydet();
                 }
                 Mesaj::Mic { on } => crate::mikrofon::ayarla(&o, on),

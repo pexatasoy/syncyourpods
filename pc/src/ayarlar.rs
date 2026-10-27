@@ -16,13 +16,13 @@ pub struct Ayarlar {
     pub guvenilen: Vec<Cihaz>,
     /// Telefon sesi devralınca PC'deki medyayı duraklat, bitince devam ettir.
     pub medya_duraklat: bool,
-    /// Telefon bağlıyken bu PC'nin hoparlörünü sustur (deneysel: bazı ses kartlarında yakalanan sesi de susturur).
-    pub hoparlor_sustur: bool,
+    /// Telefon bağlıyken PC'nin kendi çıkışı (hoparlör/kulaklık) sussun. Yakalamayı bozuyorsa kendiliğinden vazgeçer.
+    pub pc_sesini_kapat: bool,
 }
 
 impl Default for Ayarlar {
     fn default() -> Self {
-        Ayarlar { pc_id: yeni_kimlik(), guvenilen: Vec::new(), medya_duraklat: true, hoparlor_sustur: false }
+        Ayarlar { pc_id: yeni_kimlik(), guvenilen: Vec::new(), medya_duraklat: true, pc_sesini_kapat: true }
     }
 }
 

@@ -88,7 +88,9 @@ final class SesMotoru: @unchecked Sendable {
     // MARK: Oturum
 
     /// Ses oturumunu kurar ve motoru başlatır. Mikrofon durumu değişince yeniden çağrılır.
-    func baslat(mikrofon: Bool, yuksekKalite: Bool, yalitim: Bool) throws {
+    /// `gorusme`: mikrofon kapalıyken de AirPods'u görüşme (HFP) yoluna alır — Bluetooth gecikmesi çok düşer,
+    /// ses mono ve boğuklaşır. Oyun/video eşzamanlılığı için deneysel seçenek.
+    func baslat(mikrofon: Bool, yuksekKalite: Bool, yalitim: Bool, gorusme: Bool = false) throws {
         let oturum = AVAudioSession.sharedInstance()
         if calisiyor { durdur() }
         if mikrofon {
@@ -98,6 +100,8 @@ final class SesMotoru: @unchecked Sendable {
                 secenek.insert(.bluetoothHighQualityRecording)
             }
             try oturum.setCategory(.playAndRecord, mode: yalitim ? .voiceChat : .default, options: secenek)
+        } else if gorusme {
+            try oturum.setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .allowBluetooth])
         } else {
             try oturum.setCategory(.playback, mode: .default, options: [.mixWithOthers])
         }

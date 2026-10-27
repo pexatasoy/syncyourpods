@@ -210,7 +210,7 @@ final class Denetci {
                 sonHata = nil
                 kopmaAni = nil
                 if ayarlar.sonPC != id && ayarlar.sonPC != bulunan.id { ayarlar.sonPC = bulunan.id }
-                baglanti?.gonder(.settings(pauseMedia: ayarlar.medyaDuraklat))
+                baglanti?.gonder(.settings(pauseMedia: ayarlar.medyaDuraklat, muteLocal: ayarlar.pcSesiniKapat))
                 if telefonda { baglanti?.gonder(.focus(phone: true)) }
                 if ayarlar.mikAcik { baglanti?.gonder(.mic(on: true)) }
             case .wait:
@@ -220,10 +220,9 @@ final class Denetci {
                 elleKesildi = true
             case let .status(d):
                 pc = d
-                if d.pauseMedia != ayarlar.medyaDuraklat {
-                    // PC'nin tepsi menüsünden değiştirildi.
-                    ayarlar.medyaDuraklat = d.pauseMedia
-                }
+                // PC'nin tepsi menüsünden değiştirildiyse buraya da yansısın.
+                if d.pauseMedia != ayarlar.medyaDuraklat { ayarlar.medyaDuraklat = d.pauseMedia }
+                if let m = d.muteLocal, m != ayarlar.pcSesiniKapat { ayarlar.pcSesiniKapat = m }
             case let .micState(s):
                 mikDurumu = s
                 if s == "noDevice" || s == "error", ayarlar.mikAcik {
@@ -279,7 +278,8 @@ final class Denetci {
 
     private func motoruBaslat() {
         do {
-            try motor.baslat(mikrofon: ayarlar.mikAcik, yuksekKalite: ayarlar.mikYuksekKalite, yalitim: ayarlar.mikSesYalitimi)
+            try motor.baslat(mikrofon: ayarlar.mikAcik, yuksekKalite: ayarlar.mikYuksekKalite, yalitim: ayarlar.mikSesYalitimi,
+                             gorusme: ayarlar.gorusmeKipi)
             sonHata = nil
         } catch {
             sonHata = "Ses başlatılamadı: \(error.localizedDescription)"
@@ -374,8 +374,11 @@ final class Denetci {
         }
         motor.uygula(ayarlar)
         odakAyarla()
-        if eski.medyaDuraklat != ayarlar.medyaDuraklat {
-            baglanti?.gonder(.settings(pauseMedia: ayarlar.medyaDuraklat))
+        if eski.medyaDuraklat != ayarlar.medyaDuraklat || eski.pcSesiniKapat != ayarlar.pcSesiniKapat {
+            baglanti?.gonder(.settings(pauseMedia: ayarlar.medyaDuraklat, muteLocal: ayarlar.pcSesiniKapat))
+        }
+        if eski.gorusmeKipi != ayarlar.gorusmeKipi, !ayarlar.mikAcik, motor.motorCalisiyor {
+            motoruBaslat()
         }
         let mikDegisti = eski.mikAcik != ayarlar.mikAcik
             || (ayarlar.mikAcik && (eski.mikYuksekKalite != ayarlar.mikYuksekKalite || eski.mikSesYalitimi != ayarlar.mikSesYalitimi))

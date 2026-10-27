@@ -12,12 +12,12 @@ final class PaketTestleri: XCTestCase {
     }
 
     func testMesajlar() {
-        let s = String(decoding: Mesaj.settings(pauseMedia: true).satir(), as: UTF8.self)
-        XCTAssertEqual(s, "{\"pauseMedia\":true,\"t\":\"settings\"}\n")
+        let s = String(decoding: Mesaj.settings(pauseMedia: true, muteLocal: false).satir(), as: UTF8.self)
+        XCTAssertEqual(s, "{\"muteLocal\":false,\"pauseMedia\":true,\"t\":\"settings\"}\n")
         let w = Mesaj.coz(Data("{\"t\":\"welcome\",\"v\":1,\"pc\":\"EFE-PC\",\"id\":\"ab\",\"session\":4093603538,\"udp\":47800}".utf8))
         XCTAssertEqual(w, .welcome(pc: "EFE-PC", id: "ab", session: 4093603538))
-        let st = Mesaj.coz(Data("{\"t\":\"status\",\"playing\":true,\"device\":\"Hoparlör\",\"title\":\"Lofi\",\"artist\":null,\"app\":\"Chrome\",\"pauseMedia\":false}".utf8))
-        XCTAssertEqual(st, .status(PCDurumu(playing: true, device: "Hoparlör", title: "Lofi", artist: nil, app: "Chrome", pauseMedia: false)))
+        let st = Mesaj.coz(Data("{\"t\":\"status\",\"playing\":true,\"device\":\"Hoparlör\",\"title\":\"Lofi\",\"artist\":null,\"app\":\"Chrome\",\"pauseMedia\":false,\"muteLocal\":true}".utf8))
+        XCTAssertEqual(st, .status(PCDurumu(playing: true, device: "Hoparlör", title: "Lofi", artist: nil, app: "Chrome", pauseMedia: false, muteLocal: true)))
         XCTAssertEqual(Mesaj.coz(Data("{\"t\":\"micstate\",\"state\":\"noDevice\"}".utf8)), .micState("noDevice"))
     }
 
@@ -214,7 +214,8 @@ final class KaristiriciTestleri: XCTestCase {
         let a = try JSONDecoder().decode(Ayarlar.self, from: eski)
         XCTAssertEqual(a.ses, 0.5)
         XCTAssertEqual(a.gecisModu, .kis)
-        XCTAssertEqual(a.gecikme, .dengeli)
+        XCTAssertEqual(a.gecikme, .enDusuk, "eski kayıt düşük gecikmeye taşınır")
+        XCTAssertTrue(a.pcSesiniKapat)
         XCTAssertEqual(a.eqKazanclari.count, 10)
     }
 }

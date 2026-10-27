@@ -90,7 +90,7 @@ public enum Mesaj: Equatable {
     // telefon → PC
     case hello(id: String, name: String)
     case focus(phone: Bool)
-    case settings(pauseMedia: Bool)
+    case settings(pauseMedia: Bool, muteLocal: Bool)
     case mic(on: Bool)
     case ping(ts: UInt64)
     case bye
@@ -110,8 +110,10 @@ public struct PCDurumu: Equatable, Codable {
     public var artist: String?
     public var app: String?
     public var pauseMedia: Bool
-    public init(playing: Bool = false, device: String = "", title: String? = nil, artist: String? = nil, app: String? = nil, pauseMedia: Bool = true) {
-        self.playing = playing; self.device = device; self.title = title; self.artist = artist; self.app = app; self.pauseMedia = pauseMedia
+    /// PC'nin kendi çıkışı bağlıyken susuyor mu (eski PC sürümü göndermezse nil).
+    public var muteLocal: Bool?
+    public init(playing: Bool = false, device: String = "", title: String? = nil, artist: String? = nil, app: String? = nil, pauseMedia: Bool = true, muteLocal: Bool? = nil) {
+        self.playing = playing; self.device = device; self.title = title; self.artist = artist; self.app = app; self.pauseMedia = pauseMedia; self.muteLocal = muteLocal
     }
 }
 
@@ -121,7 +123,7 @@ extension Mesaj {
         switch self {
         case let .hello(id, name): s = ["t": "hello", "v": Protokol.surum, "id": id, "name": name]
         case let .focus(p): s = ["t": "focus", "phone": p]
-        case let .settings(p): s = ["t": "settings", "pauseMedia": p]
+        case let .settings(p, m): s = ["t": "settings", "pauseMedia": p, "muteLocal": m]
         case let .mic(on): s = ["t": "mic", "on": on]
         case let .ping(ts): s = ["t": "ping", "ts": ts]
         case .bye: s = ["t": "bye"]
@@ -129,6 +131,7 @@ extension Mesaj {
         case .wait: s = ["t": "wait"]
         case .denied: s = ["t": "denied"]
         case let .status(d): s = ["t": "status", "playing": d.playing, "device": d.device, "pauseMedia": d.pauseMedia]
+            if let m = d.muteLocal { s["muteLocal"] = m }
             if let x = d.title { s["title"] = x }; if let x = d.artist { s["artist"] = x }; if let x = d.app { s["app"] = x }
         case let .micState(x): s = ["t": "micstate", "state": x]
         case let .pong(ts): s = ["t": "pong", "ts": ts]
@@ -146,7 +149,7 @@ extension Mesaj {
         switch t {
         case "hello": return .hello(id: metin("id") ?? "", name: metin("name") ?? "")
         case "focus": return .focus(phone: mantik("phone") ?? false)
-        case "settings": return .settings(pauseMedia: mantik("pauseMedia") ?? true)
+        case "settings": return .settings(pauseMedia: mantik("pauseMedia") ?? true, muteLocal: mantik("muteLocal") ?? true)
         case "mic": return .mic(on: mantik("on") ?? false)
         case "ping": return .ping(ts: sayi("ts") ?? 0)
         case "bye": return .bye
@@ -156,7 +159,7 @@ extension Mesaj {
         case "status":
             return .status(PCDurumu(playing: mantik("playing") ?? false, device: metin("device") ?? "",
                                     title: metin("title"), artist: metin("artist"), app: metin("app"),
-                                    pauseMedia: mantik("pauseMedia") ?? true))
+                                    pauseMedia: mantik("pauseMedia") ?? true, muteLocal: mantik("muteLocal")))
         case "micstate": return .micState(metin("state") ?? "off")
         case "pong": return .pong(ts: sayi("ts") ?? 0)
         default: return nil

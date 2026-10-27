@@ -59,8 +59,11 @@ impl Ortak {
 
     pub fn durum_gonder(&self) {
         let d = self.durum.lock().unwrap().clone();
-        let pause = self.ayarlar.lock().unwrap().medya_duraklat;
-        self.gonder(&Mesaj::Status { playing: d.caliyor, device: d.cihaz, title: d.baslik, artist: d.sanatci, app: d.uygulama, pause_media: pause });
+        let (pause, sus) = {
+            let a = self.ayarlar.lock().unwrap();
+            (a.medya_duraklat, a.pc_sesini_kapat)
+        };
+        self.gonder(&Mesaj::Status { playing: d.caliyor, device: d.cihaz, title: d.baslik, artist: d.sanatci, app: d.uygulama, pause_media: pause, mute_local: sus });
     }
 
     pub fn ses_gonder(&self, paket: &[u8]) {

@@ -94,10 +94,10 @@ pub fn calistir(o: Arc<Ortak>) {
     let ses = MenuItem::new("", false, None);
     let (duraklat0, sustur0) = {
         let a = o.ayarlar.lock().unwrap();
-        (a.medya_duraklat, a.hoparlor_sustur)
+        (a.medya_duraklat, a.pc_sesini_kapat)
     };
     let duraklat = CheckMenuItem::new("iPhone sesi gelince PC medyasını duraklat", true, duraklat0, None);
-    let sustur = CheckMenuItem::new("Bağlıyken bu PC’nin hoparlörünü sustur (deneysel)", true, sustur0, None);
+    let sustur = CheckMenuItem::new("Bağlıyken PC’nin kendi sesi kapalı", true, sustur0, None);
     let acilis = CheckMenuItem::new("Windows açılınca başlat", true, acilista_mi(), None);
     let unut = MenuItem::new("Eşlenmiş iPhone’ları unut", true, None);
     let gunluk = MenuItem::new("Günlüğü aç", true, None);
@@ -163,8 +163,10 @@ pub fn calistir(o: Arc<Ortak>) {
                     o.durum_gonder();
                 } else if olay.id == sustur.id() {
                     let mut a = o.ayarlar.lock().unwrap();
-                    a.hoparlor_sustur = sustur.is_checked();
+                    a.pc_sesini_kapat = sustur.is_checked();
                     a.kaydet();
+                    drop(a);
+                    o.durum_gonder();
                 } else if olay.id == acilis.id() {
                     acilis_ayarla(acilis.is_checked());
                 } else if olay.id == unut.id() {
@@ -178,6 +180,11 @@ pub fn calistir(o: Arc<Ortak>) {
                 }
             }
 
+            {
+                let a = o.ayarlar.lock().unwrap();
+                if duraklat.is_checked() != a.medya_duraklat { duraklat.set_checked(a.medya_duraklat); }
+                if sustur.is_checked() != a.pc_sesini_kapat { sustur.set_checked(a.pc_sesini_kapat); }
+            }
             let d = o.durum.lock().unwrap().clone();
             let simdi = (d.telefon.clone(), d.caliyor, d.odak_telefonda, d.mik == "on");
             if simdi != onceki {

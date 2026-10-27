@@ -86,6 +86,9 @@ pub enum Mesaj {
     Settings {
         #[serde(rename = "pauseMedia")]
         pause_media: bool,
+        /// Bağlıyken PC'nin kendi çıkışı sussun (eski telefon sürümü göndermezse dokunulmaz).
+        #[serde(rename = "muteLocal", default, skip_serializing_if = "Option::is_none")]
+        mute_local: Option<bool>,
     },
     Mic { on: bool },
     Ping { ts: u64 },
@@ -102,6 +105,8 @@ pub enum Mesaj {
         app: Option<String>,
         #[serde(rename = "pauseMedia")]
         pause_media: bool,
+        #[serde(rename = "muteLocal")]
+        mute_local: bool,
     },
     #[serde(rename = "micstate")]
     MicState { state: String },
@@ -128,7 +133,9 @@ mod testler {
         assert_eq!(m, Mesaj::Hello { v: 1, id: "abc".into(), name: "Efe’nin iPhone’u".into() });
         let s = serde_json::to_string(&Mesaj::MicState { state: "noDevice".into() }).unwrap();
         assert_eq!(s, r#"{"t":"micstate","state":"noDevice"}"#);
-        let s = serde_json::to_string(&Mesaj::Settings { pause_media: true }).unwrap();
+        let s = serde_json::to_string(&Mesaj::Settings { pause_media: true, mute_local: None }).unwrap();
         assert_eq!(s, r#"{"t":"settings","pauseMedia":true}"#);
+        let m: Mesaj = serde_json::from_str(r#"{"t":"settings","pauseMedia":false,"muteLocal":true}"#).unwrap();
+        assert_eq!(m, Mesaj::Settings { pause_media: false, mute_local: Some(true) });
     }
 }
