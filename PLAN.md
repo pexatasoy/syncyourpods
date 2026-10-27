@@ -64,4 +64,11 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 - Efe isteği: bağlıyken PC'nin kendi sesi gelmesin → endpoint SetMute (loopback susturulmuş aygıtı da yakalıyor) + oturum
   ölçeriyle denetim (yakalama kesilirse vazgeçer) + çökme izi `susturulan-aygit.txt`. Gecikme: IAudioClient3 en kısa motor
   periyodu, varsayılan En düşük, deneysel "Görüşme kipi" (HFP). iPhone derleme 3.
+- 2026-10-27 gece (1.1.0): PC paneli (WebView2/wry+tao, `pc/src/panel.html` + `panel.rs`; tepsiden sağ altta açılır,
+  kapalıyken WebView yok, 2 dk sonra bellekten silinir). İki yönlü eşitleme: telefon "phone" durum mesajı (ayarlar/rota/odak/
+  ölçüm; panel açıkken 5/sn), PC "set"/"watch". AirPods kutuya girince (rota kulaklıksız) PC susturmayı bırakır, ses yollamaz.
+  Hata düzeltmesi: hece yutan atlama eşiği (≥150 ms fazla), kilit ekranında büyük blok (tampon ≥ blok×1,3), Wi-Fi uyanık
+  tutma (20 ms'de bir punch, U-APSD). Kalite: Catmull-Rom ara değerleme, PC'de TPDF dither. Windows CI'da `--panel --sorma`
+  ile açılış + ekran görüntüsü denemesi var (panel gerçek Windows 11'de çizildi). iPhone derleme 4.
+- Ses kalitesinin tavanı: iPhone→AirPods Bluetooth AAC (~256 kbps, Apple'ın elinde). İleride: PC 5.1 → AirPods uzamsal ses.
 

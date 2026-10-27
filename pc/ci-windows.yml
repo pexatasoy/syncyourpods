@@ -43,6 +43,32 @@ jobs:
           Get-MpThreatDetection | Select-Object ThreatID, Resources, InitialDetectionTime | Format-List
           Get-MpThreat | Select-Object ThreatName, SeverityID | Format-List
 
+      # Gerçek Windows'ta açılış denemesi: çökmeden kalkıyor mu, panel (WebView2) çiziliyor mu.
+      - name: Açılış ve panel denemesi
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $p = Start-Process -FilePath "cikti\SyncYourPods.exe" -ArgumentList "--panel","--sorma" -PassThru
+          Start-Sleep -Seconds 12
+          "çalışıyor mu: " + (-not $p.HasExited)
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          $g = [System.Drawing.Graphics]::FromImage($bmp)
+          $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          New-Item -ItemType Directory -Force -Path deneme | Out-Null
+          $bmp.Save("deneme\ekran.png")
+          Get-Content "$env:APPDATA\SyncYourPods\gunluk.txt" -ErrorAction SilentlyContinue
+          if (-not $p.HasExited) { Stop-Process -Id $p.Id }
+
+      - name: Deneme görüntüsü
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-deneme
+          path: deneme/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: exe'yi sakla
         uses: actions/upload-artifact@v4
         with:

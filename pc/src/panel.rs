@@ -67,7 +67,16 @@ pub fn calistir(o: Arc<Ortak>) {
         *akis = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(if gorunur { 80 } else { 400 }));
 
         match olay {
-            Event::NewEvents(StartCause::Init) => acilis_sor(),
+            Event::NewEvents(StartCause::Init) => {
+                // --sorma: açılış sorusunu atla (otomatik deneme). --panel: paneli hemen aç.
+                let arg: Vec<String> = std::env::args().collect();
+                if !arg.iter().any(|a| a == "--sorma") {
+                    acilis_sor();
+                }
+                if arg.iter().any(|a| a == "--panel") {
+                    goster(&o, hedef, &vekil, &mut baglam, &mut panel, &mut gorunur);
+                }
+            }
             Event::UserEvent(Olay::Ipc(s)) => {
                 let Ok(v) = serde_json::from_str::<Value>(&s) else { return };
                 match v["k"].as_str().unwrap_or("") {
