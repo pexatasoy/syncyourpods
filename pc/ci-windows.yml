@@ -1,7 +1,7 @@
 name: SyncYourPods Windows
 
 # MSVC derlemesi + Windows Defender taraması (MinGW sürümü Opera/Defender'a takıldı, 2026-10-27).
-# ⚠️ Kaynak sunucudan gelir (pc/ zip'i); depoda yalnız bu tarif durur.
+# Kaynak private repodan (pexatasoy/syncyourpods); depoda yalnız bu tarif durur.
 on:
   workflow_dispatch:
 
@@ -9,13 +9,24 @@ jobs:
   derle:
     runs-on: windows-latest
     steps:
+      # pc/ kodu PRIVATE repodan (pexatasoy/syncyourpods, master dalı); okuma: salt-okunur deploy key.
       - name: Kaynağı çek
+        uses: actions/checkout@v4
+        with:
+          repository: pexatasoy/syncyourpods
+          ref: master
+          ssh-key: ${{ secrets.ANAHTAR_SYNCYOURPODS }}
+          persist-credentials: false
+          path: repo
+
+      - name: Karşılaştırma dosyaları
         shell: bash
         run: |
-          curl -fsSL --retry 5 -o pc.zip https://chainmedia.co/fotoyol/syp-6e171ad25b5a79638010/syncyourpods-pc.zip
+          git -C repo log -1 --format='kaynak: %h  %cd  %s'
+          mkdir pc && cp -R repo/pc/src repo/pc/Cargo.toml repo/pc/Cargo.lock repo/pc/build.rs pc/
+          [ -f repo/pc/simge.ico ] && cp repo/pc/simge.ico pc/ || true
           curl -fsSL --retry 5 -o eski-site.exe https://chainmedia.co/fotoyol/syncyourpods-14c6606f54315e91/SyncYourPods.exe
           curl -fsSL --retry 5 -o yeni-gnu.exe https://chainmedia.co/fotoyol/syp-6e171ad25b5a79638010/syncyourpods-gnu.exe
-          mkdir pc && cd pc && unzip -q ../pc.zip
 
       - name: Derle (MSVC)
         shell: bash

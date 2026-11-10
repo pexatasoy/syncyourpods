@@ -28,5 +28,8 @@ HEDEF=/var/www/fotoyol/$DIZIN
 mkdir -p "$HEDEF"
 rm -f "$HEDEF/syncyourpods-kaynak.zip"
 zip -qr "$HEDEF/syncyourpods-kaynak.zip" SyncYourPods Destek Cekirdek project.yml DAMGA.txt -x "Cekirdek/.build/*"
+
+# Aynı paket private repoya da gider (pexatasoy/syncyourpods, `derleme` dalı); hatlar oradan çeker.
+/root/github-profil/duzen/derleme-yukle.sh syncyourpods "$PWD" SyncYourPods Destek Cekirdek project.yml DAMGA.txt
 ls -lh "$HEDEF/syncyourpods-kaynak.zip"
 echo "✅ hazır: https://chainmedia.co/fotoyol/$DIZIN/syncyourpods-kaynak.zip"

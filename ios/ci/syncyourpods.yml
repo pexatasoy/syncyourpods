@@ -10,14 +10,19 @@ jobs:
   derle:
     runs-on: macos-26
     steps:
+      # Kaynak PRIVATE repodan: pexatasoy/syncyourpods, `derleme` dalı (yayınla betiğinin hazırladığı
+      # paket; eskiden herkese açık zip'ti). Okuma: repoya özel salt-okunur deploy key (ANAHTAR_SYNCYOURPODS).
       - name: Kaynağı çek
+        uses: actions/checkout@v4
+        with:
+          repository: pexatasoy/syncyourpods
+          ref: derleme
+          ssh-key: ${{ secrets.ANAHTAR_SYNCYOURPODS }}
+          persist-credentials: false
+
+      - name: Bu derlemedeki kaynak
         run: |
-          curl -fsSL --retry 6 --retry-delay 5 --retry-all-errors \
-            --connect-timeout 20 --max-time 300 \
-            -H "Cache-Control: no-cache" -o kaynak.zip \
-            https://chainmedia.co/fotoyol/syp-6e171ad25b5a79638010/syncyourpods-kaynak.zip \
-            || { echo "Kaynak indirilemedi."; exit 1; }
-          unzip -oq kaynak.zip
+          git log -1 --format='paket: %h  %cd'
           cat DAMGA.txt
           xcodebuild -version
 
