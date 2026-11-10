@@ -12,7 +12,7 @@
 # ⚠️ Token /root/.isik-gh-token: bu betik root ile çalışır. Depo public → macOS dakikaları ücretsiz.
 set -e
 T=$(cat /root/.isik-gh-token)
-R=pexatasoy/fotoaktar-masaustu
+R=pexatasoy/build-pipelines
 A=(-s -H "Authorization: Bearer $T" -H "Accept: application/vnd.github+json")
 AKIS="syncyourpods.yml"
 AKIS_ADI="SyncYourPods iOS"

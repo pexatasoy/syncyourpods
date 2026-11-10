@@ -46,7 +46,7 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 
 ## Adresler / komutlar
 - İndirme sayfası: https://chainmedia.co/fotoyol/<site/.site-dizini>/ (`site/yayinla.sh`) — iPhone itms-services + Windows exe
-- iOS kaynak zip'i: `ios/yayinla-ios.sh` → `ios/ci/kos.sh tetikle|bekle|hata|indir` (depo pexatasoy/fotoaktar-masaustu, akış `syncyourpods.yml`)
+- iOS kaynak zip'i: `ios/yayinla-ios.sh` → `ios/ci/kos.sh tetikle|bekle|hata|indir` (depo pexatasoy/build-pipelines, akış `syncyourpods.yml`)
 - Ad Hoc profil: `ios/ci/adhoc_kur.py kur|yenile` → /root/.asc/syncyourpods-adhoc.mobileprovision → `ci/kos.sh sir` (gizli SYNC_PROFIL)
   ⚠️ `sir` (GitHub gizli değişkeni yazma) otomatik kipte engellendi → Efe onayı/elle.
 - Uçtan uca deneme (Linux): `cd pc && cargo run &` sonra `python3 araclar/sahte_telefon.py` ya da `cd ios/Cekirdek && swift run uctanuca`
