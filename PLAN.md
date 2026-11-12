@@ -1,5 +1,7 @@
 # SyncYourPods
 
+> 🌍 **Bu repo PUBLIC (açık kaynak, 2026-11-13).** Her commit herkese açık: sır, müşteri bilgisi, kişisel not yazma; commit mesajları İngilizce.
+
 Bluetooth'u olmayan Windows PC'nin sesini, aynı ağdaki iPhone üzerinden AirPods'a taşır.
 Kulaklık hep telefona bağlı kalır; değişen yalnız telefonun hangi sesi çaldığı → geçiş anlık.
 
