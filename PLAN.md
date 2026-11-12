@@ -24,7 +24,7 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 - Telefonda müzik çalarken PC'ye dönmek: AirPods'a bir kez bas → telefon müziği durur → PC anında gelir.
   (iOS başka uygulamanın sesini arka plandan kesmemize izin vermiyor; bu yüzden bu yön kullanıcının dokunuşuyla.)
 
-⚠️ Belirsiz: hint arka planda sorgulanınca güvenilir mi? Tanılama ekranı canlı gösterir; gerçek cihazda doğrulanacak.
+✅ Efe iPhone + PC'de AKTİF kullanıyor (2026-11-12 teyit). Tanılama ekranı yine canlı gösterir.
 
 ## Protokol (v1)
 - **Keşif:** PC Bonjour ile `_syncpods._tcp` yayınlar (port 47800). TXT: `v=1`, `id`, `name`.
@@ -56,7 +56,7 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 - 2026-10-27: Windows programı + çekirdek + iPhone uygulaması + indirme sayfası yazıldı. Rust testleri, Swift çekirdek
   testleri (12) ve Rust↔Swift uçtan uca deneme geçti. SYNC_PROFIL Efe onayıyla yazıldı (2026-10-27); iPhone derleme 2
   (Ad Hoc, iPhone 16, profil 2027-09-04'e kadar) indirme sayfasında. Kurulum bildirimi manifest.xml (Caddy .plist'e tür vermiyor).
-- Gerçek cihazda doğrulanacak: (1) hint arka planda geliyor mu (Tanılama ekranı), (2) gecikme/kesinti, (3) WASAPI loopback
+- (2026-11-12: Efe ikisini de aktif kullanıyor; aşağıdaki liste ilk kurulumdaki kontrol listesiydi.) Gerçek cihazda doğrulanacak: (1) hint arka planda geliyor mu (Tanılama ekranı), (2) gecikme/kesinti, (3) WASAPI loopback
   gerçek PC'de, (4) VB-CABLE mikrofonu, (5) medya duraklat/sürdür (Chrome/Spotify).
 - 2026-10-27 akşam: Opera/Defender exe'yi "virüs" diye engelledi. CI'da Defender güncel tanımlarla 3 sürüm de TEMİZ →
   bulut ML (imzasız yeni dosya) kaynaklı. Windows artık MSVC ile GitHub Windows koşucusunda derleniyor (`pc/ci-windows.yml`,
