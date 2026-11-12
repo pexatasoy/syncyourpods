@@ -53,6 +53,7 @@ iPhone uygulaması "karışabilir" (mixWithOthers) ses oturumuyla PC sesini sür
 - PC günlüğü: %APPDATA%\SyncYourPods\gunluk.txt (tepsi → Günlüğü aç)
 
 ## ▶ KALDIĞIMIZ YER
+- 2026-11-12: Açık kaynağa hazırlık — İngilizce README + MIT LICENSE eklendi; repo Efe "aç" deyince public olur. Engel: arayüz (iOS ~300 metin + PC paneli) yalnız Türkçe; README bunu söylüyor. İngilizce yerelleştirme Efe'ye soruldu.
 - 2026-10-27: Windows programı + çekirdek + iPhone uygulaması + indirme sayfası yazıldı. Rust testleri, Swift çekirdek
   testleri (12) ve Rust↔Swift uçtan uca deneme geçti. SYNC_PROFIL Efe onayıyla yazıldı (2026-10-27); iPhone derleme 2
   (Ad Hoc, iPhone 16, profil 2027-09-04'e kadar) indirme sayfasında. Kurulum bildirimi manifest.xml (Caddy .plist'e tür vermiyor).
