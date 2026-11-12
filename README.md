@@ -12,7 +12,9 @@ SyncYourPods leaves your AirPods connected to your iPhone the whole time. The PC
 
 No Bluetooth on the PC, no drivers, no re-pairing.
 
-> ⚠️ The app UI is in Turkish for now; English is on the way.
+The app is in English, or in Turkish on a Turkish iPhone / Windows.
+
+<p align="center"><img src="docs/hero.png" width="900" alt="The iPhone app playing the PC (blue) and stepping aside for the phone (orange), next to the Windows tray panel"></p>
 
 ## How it works
 

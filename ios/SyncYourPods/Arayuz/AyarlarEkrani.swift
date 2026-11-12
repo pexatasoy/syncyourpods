@@ -45,7 +45,7 @@ struct AyarlarEkrani: View {
 
             Section(L("Ses", "Sound")) {
                 NavigationLink { SesEkrani() } label: {
-                    AyarSatiri(simge: "speaker.wave.2.fill", renk: .pink, baslik: L("Ses", "Sound"), deger: "%\(Int(d.ayarlar.ses * 100))")
+                    AyarSatiri(simge: "speaker.wave.2.fill", renk: .pink, baslik: L("Ses", "Sound"), deger: L("%\(Int(d.ayarlar.ses * 100))", "\(Int(d.ayarlar.ses * 100))%"))
                 }
                 NavigationLink { EkolayzerEkrani() } label: {
                     AyarSatiri(simge: "slider.vertical.3", renk: .indigo, baslik: L("Ekolayzer", "Equalizer"),
@@ -101,7 +101,7 @@ struct SesEkrani: View {
                     HStack {
                         Text(L("Bilgisayar sesi", "Computer volume"))
                         Spacer()
-                        Text("%\(Int(d.ayarlar.ses * 100))").foregroundStyle(.secondary).monospacedDigit()
+                        Text(L("%\(Int(d.ayarlar.ses * 100))", "\(Int(d.ayarlar.ses * 100))%")).foregroundStyle(.secondary).monospacedDigit()
                     }
                     HStack(spacing: 12) {
                         Image(systemName: "speaker.fill").foregroundStyle(.secondary)

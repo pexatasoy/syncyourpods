@@ -84,7 +84,7 @@ struct AkisZinciri: View {
             Hat(akiyor: kaynak == .pc, renk: Renk.pc, acik: kaynak != .yok)
             Dugum(simge: "iphone", ad: "iPhone", vurgu: kaynak == .telefon ? Renk.telefon : nil, soluk: false)
             Hat(akiyor: (kaynak == .pc || kaynak == .telefon) && kulaklik, renk: Renk.kaynak(kaynak), acik: kulaklik)
-            Dugum(simge: kulaklikSimge, ad: L("Kulaklık", "Headphones"), vurgu: nil, soluk: !kulaklik)
+            Dugum(simge: kulaklikSimge, ad: L("Kulaklık", "AirPods"), vurgu: nil, soluk: !kulaklik)
         }
         .padding(.vertical, 4)
     }
