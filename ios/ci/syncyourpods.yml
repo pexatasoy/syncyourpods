@@ -64,11 +64,19 @@ jobs:
           cek 02-bagli-telefon -ornek YES -telefonda YES
           for E in ayarlar ses ekolayzer gecis gecikme mikrofon tanilama gurultu bilgisayar; do cek "10-$E" -ornek YES -ekran $E; done
           cek 20-ozel-eq -ornek YES -ekran ekolayzer -ozelEq YES
+          # İngilizce arayüz (README görselleri): uygulamaya özel dil bayrağı
+          EN='-AppleLanguages (en) -AppleLocale en_US'
+          cek en-00-baslarken $EN
+          cek en-01-bagli-pc -ornek YES $EN
+          cek en-02-bagli-telefon -ornek YES -telefonda YES $EN
+          for E in ayarlar gecis gecikme ses; do cek "en-10-$E" -ornek YES -ekran $E $EN; done
           xcrun simctl ui "$UDID" appearance dark || true
           cek 30-koyu-pc -ornek YES
           cek 31-koyu-telefon -ornek YES -telefonda YES
           cek 32-koyu-ayarlar -ornek YES -ekran ayarlar
           cek 33-koyu-baslarken
+          cek en-30-koyu-pc -ornek YES $EN
+          cek en-31-koyu-telefon -ornek YES -telefonda YES $EN
           xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "SyncYourPods"' --style compact 2>/dev/null \
             | grep -iE "fatal|crash|error|exception" | tail -60 > gorseller/simulator-gunlugu.txt || true
 

@@ -64,8 +64,8 @@ pub fn uygulama_adi(kimlik: &str) -> String {
         ("vlc", "VLC"),
         ("brave", "Brave"),
         ("opera", "Opera"),
-        ("zune", "Medya Oynatıcı"),
-        ("music", "Müzik"),
+        ("zune", crate::dil::t("Medya Oynatıcı", "Media Player")),
+        ("music", crate::dil::t("Müzik", "Music")),
         ("discord", "Discord"),
     ];
     for (a, b) in bilinen {
@@ -148,6 +148,6 @@ mod testler {
         assert_eq!(uygulama_adi("Chrome"), "Chrome");
         assert_eq!(uygulama_adi("Spotify.exe"), "Spotify");
         assert_eq!(uygulama_adi("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe"), "VLC");
-        assert_eq!(uygulama_adi("Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic"), "Medya Oynatıcı");
+        assert_eq!(uygulama_adi("Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic"), crate::dil::t("Medya Oynatıcı", "Media Player"));
     }
 }

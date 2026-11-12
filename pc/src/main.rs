@@ -4,6 +4,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod ayarlar;
+mod dil;
 mod kesif;
 mod medya;
 mod mikrofon;
@@ -45,7 +46,7 @@ fn main() {
             let hata = format!("{:?} {:?}", t.err(), u.err());
             gunluk!("port {} açılamadı: {}", protokol::PORT, hata);
             #[cfg(windows)]
-            tepsi::uyari(&format!("SyncYourPods {} numaralı portu açamadı. Başka bir program kullanıyor olabilir.", protokol::PORT));
+            tepsi::uyari(&if crate::dil::turkce() { format!("SyncYourPods {} numaralı portu açamadı. Başka bir program kullanıyor olabilir.", protokol::PORT) } else { format!("SyncYourPods couldn't open port {}. Another program may be using it.", protokol::PORT) });
             return;
         }
     };

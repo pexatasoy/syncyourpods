@@ -44,13 +44,13 @@ pub fn calistir(o: Arc<Ortak>) {
     let vekil = dongu.create_proxy();
 
     let menu = Menu::new();
-    let ac = MenuItem::new("SyncYourPods’u aç", true, None);
-    let cikis = MenuItem::new("Çıkış", true, None);
+    let ac = MenuItem::new(crate::dil::t("SyncYourPods’u aç", "Open SyncYourPods"), true, None);
+    let cikis = MenuItem::new(crate::dil::t("Çıkış", "Quit"), true, None);
     let _ = menu.append_items(&[&ac, &PredefinedMenuItem::separator(), &cikis]);
     let tepsi_simgesi: Option<TrayIcon> = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
         .with_menu_on_left_click(false)
-        .with_tooltip("SyncYourPods — iPhone bekleniyor")
+        .with_tooltip(crate::dil::t("SyncYourPods — iPhone bekleniyor", "SyncYourPods — waiting for iPhone"))
         .with_icon(tepsi::simge(false, false))
         .build()
         .map_err(|e| crate::gunluk!("tepsi simgesi kurulamadı: {}", e))
@@ -142,10 +142,10 @@ pub fn calistir(o: Arc<Ortak>) {
             if let Some(t) = &tepsi_simgesi {
                 let _ = t.set_icon(Some(tepsi::simge(simdi.0.is_some(), simdi.2)));
                 let ipucu = match &simdi.0 {
-                    None => "SyncYourPods — iPhone bekleniyor".to_string(),
-                    Some(ad) if !simdi.1 => format!("SyncYourPods — {} · AirPods kutuda", ad),
-                    Some(ad) if simdi.2 => format!("SyncYourPods — {} · iPhone sesi öncelikte", ad),
-                    Some(ad) => format!("SyncYourPods — {} · {}{}", ad, if caliyor { "PC sesi AirPods’ta" } else { "PC sessiz" }, if mik { " · mikrofon açık" } else { "" }),
+                    None => crate::dil::t("SyncYourPods — iPhone bekleniyor", "SyncYourPods — waiting for iPhone").to_string(),
+                    Some(ad) if !simdi.1 => format!("SyncYourPods — {} · {}", ad, crate::dil::t("AirPods kutuda", "AirPods in case")),
+                    Some(ad) if simdi.2 => format!("SyncYourPods — {} · {}", ad, crate::dil::t("iPhone sesi öncelikte", "iPhone audio has priority")),
+                    Some(ad) => format!("SyncYourPods — {} · {}{}", ad, if caliyor { crate::dil::t("PC sesi AirPods’ta", "PC audio on AirPods") } else { crate::dil::t("PC sessiz", "PC quiet") }, if mik { crate::dil::t(" · mikrofon açık", " · mic on") } else { "" }),
                 };
                 let _ = t.set_tooltip(Some(ipucu));
             }
@@ -202,7 +202,7 @@ fn olustur(hedef: &EventLoopWindowTarget<Olay>, vekil: &EventLoopProxy<Olay>, ba
     }
     let v = vekil.clone();
     let web = WebViewBuilder::new_with_web_context(baglam)
-        .with_html(HTML)
+        .with_html(HTML.replacen("__DIL__", crate::dil::kod(), 1))
         .with_background_color(if koyu { (0, 0, 0, 255) } else { (242, 242, 247, 255) })
         .with_devtools(false)
         .with_ipc_handler(move |istek| {
@@ -213,7 +213,7 @@ fn olustur(hedef: &EventLoopWindowTarget<Olay>, vekil: &EventLoopProxy<Olay>, ba
         Ok(web) => Some(Panel { pencere, web }),
         Err(e) => {
             crate::gunluk!("WebView2 açılamadı: {}", e);
-            tepsi::uyari("Panel için Microsoft WebView2 gerekiyor (Windows 11'de hazır gelir).\n\nAçılacak sayfadan “Evergreen Bootstrapper”ı kurup SyncYourPods'u yeniden açabilirsin. Ses aktarımı bu arada çalışmaya devam eder.");
+            tepsi::uyari(crate::dil::t("Panel için Microsoft WebView2 gerekiyor (Windows 11'de hazır gelir).\n\nAçılacak sayfadan “Evergreen Bootstrapper”ı kurup SyncYourPods'u yeniden açabilirsin. Ses aktarımı bu arada çalışmaya devam eder.", "The panel needs Microsoft WebView2 (it comes with Windows 11).\n\nInstall the “Evergreen Bootstrapper” from the page that opens, then start SyncYourPods again. Audio keeps streaming in the meantime."));
             let _ = std::process::Command::new("explorer.exe").arg("https://developer.microsoft.com/microsoft-edge/webview2/").spawn();
             None
         }

@@ -21,7 +21,7 @@ enum Kaynak {
 }
 
 struct Rota: Equatable {
-    var ad = "Kulaklık bağlı değil"
+    var ad = L("Kulaklık bağlı değil", "No headphones connected")
     var simge = "headphones"
     var kulaklik = false
 }
@@ -130,16 +130,16 @@ final class Denetci {
 
     var durumMetni: String {
         switch durum {
-        case .araniyor: return bulunanlar.isEmpty ? "Bilgisayar aranıyor" : "Bağlanmak için bilgisayar seç"
-        case let .baglaniyor(ad): return "\(ad) bağlanıyor"
-        case let .izinBekleniyor(ad): return "\(ad) üzerinde izin ver"
-        case let .reddedildi(ad): return "\(ad) izin vermedi"
+        case .araniyor: return bulunanlar.isEmpty ? L("Bilgisayar aranıyor", "Looking for your computer") : L("Bağlanmak için bilgisayar seç", "Pick a computer to connect")
+        case let .baglaniyor(ad): return L("\(ad) bağlanıyor", "Connecting to \(ad)")
+        case let .izinBekleniyor(ad): return L("\(ad) üzerinde izin ver", "Allow it on \(ad)")
+        case let .reddedildi(ad): return L("\(ad) izin vermedi", "\(ad) said no")
         case .bagli:
-            if !rota.kulaklik { return "AirPods’u tak" }
+            if !rota.kulaklik { return L("AirPods’u tak", "Put in your AirPods") }
             switch kaynak {
-            case .pc: return "Bilgisayardan çalıyor"
-            case .telefon: return "iPhone’dan çalıyor"
-            case .sessiz: return "Bilgisayar sessiz"
+            case .pc: return L("Bilgisayardan çalıyor", "Playing from the computer")
+            case .telefon: return L("iPhone’dan çalıyor", "Playing from iPhone")
+            case .sessiz: return L("Bilgisayar sessiz", "Computer is quiet")
             case .yok: return ""
             }
         }
@@ -292,7 +292,7 @@ final class Denetci {
                              gorusme: ayarlar.gorusmeKipi)
             sonHata = nil
         } catch {
-            sonHata = "Ses başlatılamadı: \(error.localizedDescription)"
+            sonHata = L("Ses başlatılamadı: \(error.localizedDescription)", "Couldn't start audio: \(error.localizedDescription)")
         }
         rotaDegisti()
     }
@@ -320,7 +320,7 @@ final class Denetci {
         case .headphones, .usbAudio, .airPlay, .carAudio, .HDMI, .lineOut:
             return Rota(ad: ad, simge: "headphones", kulaklik: true)
         default:
-            return Rota(ad: "Kulaklık bağlı değil", simge: "headphones", kulaklik: false)
+            return Rota(ad: L("Kulaklık bağlı değil", "No headphones connected"), simge: "headphones", kulaklik: false)
         }
     }
 
@@ -461,9 +461,9 @@ final class Denetci {
         durum = .bagli("EFE-PC")
         pcAdi = "EFE-PC"
         bulunanlar = [BulunanPC(id: "ornek", ad: "EFE-PC", uc: .hostPort(host: "192.168.1.20", port: 47800))]
-        pc = PCDurumu(playing: true, device: "Hoparlör (Realtek Audio)", title: "lofi hip hop radio – beats to relax/study to",
+        pc = PCDurumu(playing: true, device: L("Hoparlör (Realtek Audio)", "Speakers (Realtek Audio)"), title: "lofi hip hop radio – beats to relax/study to",
                       artist: "Lofi Girl", app: "Chrome", pauseMedia: true)
-        rota = Rota(ad: "Efe’nin AirPods Pro’su", simge: "airpodspro", kulaklik: true)
+        rota = Rota(ad: L("Efe’nin AirPods Pro’su", "Efe’s AirPods Pro"), simge: "airpodspro", kulaklik: true)
         telefonda = u.bool(forKey: "telefonda")
         var i = TamponIstatistik()
         i.alinan = 18234; i.kurtarilan = 41; i.kayip = 2; i.gec = 3

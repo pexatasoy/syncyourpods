@@ -38,53 +38,53 @@ struct AyarlarEkrani: View {
         List {
             Section {
                 NavigationLink { BilgisayarlarEkrani() } label: {
-                    AyarSatiri(simge: "desktopcomputer", renk: Renk.pc, baslik: "Bilgisayar",
-                               deger: d.durum.bagli ? (d.pcAdi ?? "Bağlı") : "Bağlı değil")
+                    AyarSatiri(simge: "desktopcomputer", renk: Renk.pc, baslik: L("Bilgisayar", "Computer"),
+                               deger: d.durum.bagli ? (d.pcAdi ?? L("Bağlı", "Connected")) : L("Bağlı değil", "Not connected"))
                 }
             }
 
-            Section("Ses") {
+            Section(L("Ses", "Sound")) {
                 NavigationLink { SesEkrani() } label: {
-                    AyarSatiri(simge: "speaker.wave.2.fill", renk: .pink, baslik: "Ses", deger: "%\(Int(d.ayarlar.ses * 100))")
+                    AyarSatiri(simge: "speaker.wave.2.fill", renk: .pink, baslik: L("Ses", "Sound"), deger: "%\(Int(d.ayarlar.ses * 100))")
                 }
                 NavigationLink { EkolayzerEkrani() } label: {
-                    AyarSatiri(simge: "slider.vertical.3", renk: .indigo, baslik: "Ekolayzer",
-                               deger: d.ayarlar.eqAcik ? (d.ayarlar.eqHazir == "ozel" ? "Özel" : (Ekolayzer.hazir(d.ayarlar.eqHazir)?.ad ?? "Açık")) : "Kapalı")
+                    AyarSatiri(simge: "slider.vertical.3", renk: .indigo, baslik: L("Ekolayzer", "Equalizer"),
+                               deger: d.ayarlar.eqAcik ? (d.ayarlar.eqHazir == "ozel" ? L("Özel", "Custom") : (Ekolayzer.hazir(d.ayarlar.eqHazir)?.ad ?? L("Açık", "On"))) : L("Kapalı", "Off"))
                 }
                 NavigationLink { GecikmeEkrani() } label: {
-                    AyarSatiri(simge: "timer", renk: .teal, baslik: "Gecikme", deger: GecikmeEkrani.ad(d.ayarlar.gecikme))
+                    AyarSatiri(simge: "timer", renk: .teal, baslik: L("Gecikme", "Latency"), deger: GecikmeEkrani.ad(d.ayarlar.gecikme))
                 }
             }
 
             Section("AirPods") {
                 NavigationLink { GecisEkrani() } label: {
-                    AyarSatiri(simge: "arrow.left.arrow.right", renk: Renk.telefon, baslik: "Otomatik Geçiş",
-                               deger: d.ayarlar.otomatikGecis ? "Açık" : "Kapalı")
+                    AyarSatiri(simge: "arrow.left.arrow.right", renk: Renk.telefon, baslik: L("Otomatik Geçiş", "Auto Switching"),
+                               deger: d.ayarlar.otomatikGecis ? L("Açık", "On") : L("Kapalı", "Off"))
                 }
                 NavigationLink { MikrofonEkrani() } label: {
-                    AyarSatiri(simge: "mic.fill", renk: .red, baslik: "Mikrofon", deger: d.ayarlar.mikAcik ? "Açık" : "Kapalı")
+                    AyarSatiri(simge: "mic.fill", renk: .red, baslik: L("Mikrofon", "Microphone"), deger: d.ayarlar.mikAcik ? L("Açık", "On") : L("Kapalı", "Off"))
                 }
                 NavigationLink { GurultuEkrani() } label: {
-                    AyarSatiri(simge: "ear.fill", renk: .gray, baslik: "Gürültü Engelleme")
+                    AyarSatiri(simge: "ear.fill", renk: .gray, baslik: L("Gürültü Engelleme", "Noise Control"))
                 }
             }
 
             Section {
                 Toggle(isOn: $d.ayarlar.titresim) {
-                    AyarSatiri(simge: "iphone.radiowaves.left.and.right", renk: .purple, baslik: "Geçişte titreşim")
+                    AyarSatiri(simge: "iphone.radiowaves.left.and.right", renk: .purple, baslik: L("Geçişte titreşim", "Haptic on switch"))
                 }
             }
 
             Section {
                 NavigationLink { TanilamaEkrani() } label: {
-                    AyarSatiri(simge: "waveform.path.ecg", renk: .green, baslik: "Tanılama")
+                    AyarSatiri(simge: "waveform.path.ecg", renk: .green, baslik: L("Tanılama", "Diagnostics"))
                 }
                 NavigationLink { HakkindaEkrani() } label: {
-                    AyarSatiri(simge: "info", renk: .gray, baslik: "Hakkında")
+                    AyarSatiri(simge: "info", renk: .gray, baslik: L("Hakkında", "About"))
                 }
             }
         }
-        .navigationTitle("Ayarlar")
+        .navigationTitle(L("Ayarlar", "Settings"))
     }
 }
 
@@ -99,7 +99,7 @@ struct SesEkrani: View {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Bilgisayar sesi")
+                        Text(L("Bilgisayar sesi", "Computer volume"))
                         Spacer()
                         Text("%\(Int(d.ayarlar.ses * 100))").foregroundStyle(.secondary).monospacedDigit()
                     }
@@ -112,60 +112,60 @@ struct SesEkrani: View {
                 }
                 .padding(.vertical, 4)
             } footer: {
-                Text("Yalnız bilgisayardan gelen sesi etkiler. Genel ses düzeyi iPhone’un ses tuşlarıyla.")
+                Text(L("Yalnız bilgisayardan gelen sesi etkiler. Genel ses düzeyi iPhone’un ses tuşlarıyla.", "Only affects sound from the computer. Overall volume is on your iPhone's volume buttons."))
             }
 
             Section {
                 VStack(spacing: 8) {
                     HStack {
-                        Text("Denge")
+                        Text(L("Denge", "Balance"))
                         Spacer()
                         Text(dengeMetni).foregroundStyle(.secondary).monospacedDigit()
                     }
                     HStack(spacing: 12) {
-                        Text("Sol").font(.footnote.weight(.medium)).foregroundStyle(.secondary)
+                        Text(L("Sol", "Left")).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                         Slider(value: Binding(get: { d.ayarlar.denge }, set: { y in
                             // Ortaya yakınsa ortaya otur.
                             d.ayarlar.denge = abs(y) < 0.06 ? 0 : y
                         }), in: -1...1)
-                        Text("Sağ").font(.footnote.weight(.medium)).foregroundStyle(.secondary)
+                        Text(L("Sağ", "Right")).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
-                Toggle("Mono ses", isOn: $d.ayarlar.mono)
+                Toggle(L("Mono ses", "Mono audio"), isOn: $d.ayarlar.mono)
             } footer: {
-                Text("Mono, iki kulağa aynı sesi verir: tek AirPods taktığında hiçbir şey kaçmaz.")
+                Text(L("Mono, iki kulağa aynı sesi verir: tek AirPods taktığında hiçbir şey kaçmaz.", "Mono plays the same sound in both ears, so you miss nothing with a single AirPod in."))
             }
 
             Section {
-                Toggle("Bilgisayarın kendi sesi kapalı", isOn: $d.ayarlar.pcSesiniKapat)
+                Toggle(L("Bilgisayarın kendi sesi kapalı", "Mute the computer's own speakers"), isOn: $d.ayarlar.pcSesiniKapat)
             } footer: {
-                Text("Bağlıyken bilgisayarın hoparlörü ya da kulaklığı susar, ses yalnız AirPods’ta olur. Bağlantı bitince eski hâline döner.")
+                Text(L("Bağlıyken bilgisayarın hoparlörü ya da kulaklığı susar, ses yalnız AirPods’ta olur. Bağlantı bitince eski hâline döner.", "While connected, the computer's speakers or headphones go quiet and the sound is only in your AirPods. It goes back to normal when you disconnect."))
             }
 
             Section {
-                Picker("Ses yükseltici", selection: $d.ayarlar.yukseltici) {
-                    Text("Kapalı").tag(Yukseltici.kapali)
-                    Text("Hafif").tag(Yukseltici.hafif)
-                    Text("Güçlü").tag(Yukseltici.guclu)
+                Picker(L("Ses yükseltici", "Volume booster"), selection: $d.ayarlar.yukseltici) {
+                    Text(L("Kapalı", "Off")).tag(Yukseltici.kapali)
+                    Text(L("Hafif", "Light")).tag(Yukseltici.hafif)
+                    Text(L("Güçlü", "Strong")).tag(Yukseltici.guclu)
                 }
                 .pickerStyle(.segmented)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             } header: {
-                Text("Ses yükseltici")
+                Text(L("Ses yükseltici", "Volume booster"))
             } footer: {
-                Text("Kısık konuşmaları yükseltir, ani patlamaları bastırır. Sessiz videolar ve gece dinlemesi için.")
+                Text(L("Kısık konuşmaları yükseltir, ani patlamaları bastırır. Sessiz videolar ve gece dinlemesi için.", "Lifts quiet dialogue and tames sudden loud bits. For quiet videos and late-night listening."))
             }
         }
-        .navigationTitle("Ses")
+        .navigationTitle(L("Ses", "Sound"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
     private var dengeMetni: String {
         let v = d.ayarlar.denge
-        if v == 0 { return "Orta" }
-        return v < 0 ? "Sol %\(Int(-v * 100))" : "Sağ %\(Int(v * 100))"
+        if v == 0 { return L("Orta", "Center") }
+        return v < 0 ? L("Sol %\(Int(-v * 100))", "Left \(Int(-v * 100))%") : L("Sağ %\(Int(v * 100))", "Right \(Int(v * 100))%")
     }
 }
 
@@ -178,7 +178,7 @@ struct EkolayzerEkrani: View {
         @Bindable var d = d
         List {
             Section {
-                Toggle("Ekolayzer", isOn: $d.ayarlar.eqAcik.animation())
+                Toggle(L("Ekolayzer", "Equalizer"), isOn: $d.ayarlar.eqAcik.animation())
             }
 
             Section {
@@ -203,31 +203,31 @@ struct EkolayzerEkrani: View {
                     }
                     .frame(height: 210)
                     .padding(.vertical, 6)
-                    Button("Sıfırla", role: .destructive) {
+                    Button(L("Sıfırla", "Reset"), role: .destructive) {
                         d.ayarlar.eqOzel = Array(repeating: 0, count: Ekolayzer.bantlar.count)
                     }
                 } header: {
-                    Text("Özel ayar")
+                    Text(L("Özel ayar", "Custom"))
                 } footer: {
-                    Text("±12 dB. Kırpılmayı önlemek için yükselttiğin kadar genel ses kendiliğinden biraz kısılır.")
+                    Text(L("±12 dB. Kırpılmayı önlemek için yükselttiğin kadar genel ses kendiliğinden biraz kısılır.", "±12 dB. To prevent clipping, the overall level drops a little as you boost."))
                 }
             }
 
-            Section("Hazır ayarlar") {
+            Section(L("Hazır ayarlar", "Presets")) {
                 ForEach(Ekolayzer.hazirlar) { h in
                     secenek(h.ad, secili: d.ayarlar.eqHazir == h.id) {
                         d.ayarlar.eqHazir = h.id
                         d.ayarlar.eqAcik = true
                     }
                 }
-                secenek("Özel", secili: d.ayarlar.eqHazir == "ozel") {
+                secenek(L("Özel", "Custom"), secili: d.ayarlar.eqHazir == "ozel") {
                     if d.ayarlar.eqHazir != "ozel" { d.ayarlar.eqOzel = d.ayarlar.eqKazanclari }
                     d.ayarlar.eqHazir = "ozel"
                     d.ayarlar.eqAcik = true
                 }
             }
         }
-        .navigationTitle("Ekolayzer")
+        .navigationTitle(L("Ekolayzer", "Equalizer"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -292,39 +292,39 @@ struct GecisEkrani: View {
         @Bindable var d = d
         List {
             Section {
-                Toggle("Otomatik geçiş", isOn: $d.ayarlar.otomatikGecis.animation())
+                Toggle(L("Otomatik geçiş", "Auto switching"), isOn: $d.ayarlar.otomatikGecis.animation())
             } footer: {
-                Text("iPhone’da bir video ya da müzik başlayınca AirPods ona geçer; bitince bilgisayarın sesi geri gelir.")
+                Text(L("iPhone’da bir video ya da müzik başlayınca AirPods ona geçer; bitince bilgisayarın sesi geri gelir.", "When a video or music starts on your iPhone, your AirPods switch to it. When it ends, the computer's sound comes back."))
             }
 
             if d.ayarlar.otomatikGecis {
-                Section("iPhone sesi gelince bilgisayar") {
-                    SecimSatiri(baslik: "Susar", aciklama: "Yalnız iPhone duyulur.", secili: d.ayarlar.gecisModu == .sustur) { d.ayarlar.gecisModu = .sustur }
-                    SecimSatiri(baslik: "Kısılır", aciklama: "Bilgisayar arka planda alçak sesle devam eder.", secili: d.ayarlar.gecisModu == .kis) { d.ayarlar.gecisModu = .kis }
-                    SecimSatiri(baslik: "Karışır", aciklama: "İkisi birlikte duyulur, geçiş yapılmaz.", secili: d.ayarlar.gecisModu == .karistir) { d.ayarlar.gecisModu = .karistir }
+                Section(L("iPhone sesi gelince bilgisayar", "When iPhone audio plays, the computer")) {
+                    SecimSatiri(baslik: L("Susar", "Goes silent"), aciklama: L("Yalnız iPhone duyulur.", "You only hear the iPhone."), secili: d.ayarlar.gecisModu == .sustur) { d.ayarlar.gecisModu = .sustur }
+                    SecimSatiri(baslik: L("Kısılır", "Ducks"), aciklama: L("Bilgisayar arka planda alçak sesle devam eder.", "The computer keeps playing quietly underneath."), secili: d.ayarlar.gecisModu == .kis) { d.ayarlar.gecisModu = .kis }
+                    SecimSatiri(baslik: L("Karışır", "Mixes"), aciklama: L("İkisi birlikte duyulur, geçiş yapılmaz.", "You hear both. No switching."), secili: d.ayarlar.gecisModu == .karistir) { d.ayarlar.gecisModu = .karistir }
                     if d.ayarlar.gecisModu == .kis {
                         HStack {
-                            Text("Arka plan sesi")
+                            Text(L("Arka plan sesi", "Background level"))
                             Slider(value: $d.ayarlar.kisSeviyesi, in: 0.05...0.6)
                         }
                     }
                 }
 
                 Section {
-                    Toggle("Bilgisayardaki medyayı duraklat", isOn: $d.ayarlar.medyaDuraklat)
+                    Toggle(L("Bilgisayardaki medyayı duraklat", "Pause media on the computer"), isOn: $d.ayarlar.medyaDuraklat)
                 } footer: {
-                    Text("YouTube, Spotify ya da film iPhone sesi çalarken duraklar, iPhone sesi bitince kaldığı yerden sürer. Yalnız SyncYourPods’un duraklattığı şey sürdürülür.")
+                    Text(L("YouTube, Spotify ya da film iPhone sesi çalarken duraklar, iPhone sesi bitince kaldığı yerden sürer. Yalnız SyncYourPods’un duraklattığı şey sürdürülür.", "YouTube, Spotify or a movie pauses while iPhone audio plays and picks up where it left off afterwards. Only what SyncYourPods paused gets resumed."))
                 }
 
                 Section {
-                    Picker("Geri dönüş", selection: $d.ayarlar.donusGecikmesi) {
-                        Text("Hemen").tag(0.3)
-                        Text("Kısa").tag(0.6)
-                        Text("Uzun").tag(1.5)
+                    Picker(L("Geri dönüş", "Switch back"), selection: $d.ayarlar.donusGecikmesi) {
+                        Text(L("Hemen", "Instantly")).tag(0.3)
+                        Text(L("Kısa", "Short")).tag(0.6)
+                        Text(L("Uzun", "Long")).tag(1.5)
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("Geçiş yumuşaklığı")
+                            Text(L("Geçiş yumuşaklığı", "Crossfade"))
                             Spacer()
                             Text("\(Int(d.ayarlar.gecisSuresi * 1000)) ms").foregroundStyle(.secondary).monospacedDigit()
                         }
@@ -332,22 +332,22 @@ struct GecisEkrani: View {
                     }
                     .padding(.vertical, 4)
                 } footer: {
-                    Text("Geri dönüş, iPhone sesi sustuktan sonra beklenen süre: Reels gibi art arda videolarda gidip gelmeyi önler.")
+                    Text(L("Geri dönüş, iPhone sesi sustuktan sonra beklenen süre: Reels gibi art arda videolarda gidip gelmeyi önler.", "Switch back is how long to wait after the iPhone goes quiet, so back-to-back clips like Reels don't flip it back and forth."))
                 }
             }
 
             Section {
                 Label {
-                    Text("iPhone’da müzik çalarken bilgisayara dönmek için AirPods’a bir kez bas: iPhone’daki müzik durur, bilgisayarın sesi hemen gelir.")
+                    Text(L("iPhone’da müzik çalarken bilgisayara dönmek için AirPods’a bir kez bas: iPhone’daki müzik durur, bilgisayarın sesi hemen gelir.", "To get back to the computer while music plays on your iPhone, press your AirPods once: the iPhone music stops and the computer comes right back."))
                         .font(.footnote)
                 } icon: {
                     Image(systemName: "hand.tap.fill").foregroundStyle(Renk.telefon)
                 }
             } footer: {
-                Text("iOS, başka bir uygulamanın sesini arka plandan durdurmamıza izin vermiyor; bu yön senin dokunuşunla olur.")
+                Text(L("iOS, başka bir uygulamanın sesini arka plandan durdurmamıza izin vermiyor; bu yön senin dokunuşunla olur.", "iOS doesn't let an app stop another app's audio from the background, so this direction takes your tap."))
             }
         }
-        .navigationTitle("Otomatik Geçiş")
+        .navigationTitle(L("Otomatik Geçiş", "Auto Switching"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -380,9 +380,9 @@ struct GecikmeEkrani: View {
 
     static func ad(_ m: GecikmeModu) -> String {
         switch m {
-        case .enDusuk: return "En düşük"
-        case .dengeli: return "Dengeli"
-        case .kararli: return "Kararlı"
+        case .enDusuk: return L("En düşük", "Lowest")
+        case .dengeli: return L("Dengeli", "Balanced")
+        case .kararli: return L("Kararlı", "Stable")
         }
     }
 
@@ -396,11 +396,11 @@ struct GecikmeEkrani: View {
                         .monospacedDigit()
                         .contentTransition(.numericText())
                         .animation(.smooth, value: Int(d.toplamGecikmeMs / 5))
-                    Text("bilgisayardan kulağa toplam gecikme")
+                    Text(L("bilgisayardan kulağa toplam gecikme", "total delay from computer to ear"))
                         .font(.footnote).foregroundStyle(.secondary)
                     HStack(spacing: 14) {
-                        Parca(ad: "Ağ", ms: (d.rttMs ?? 0) / 2, renk: .teal)
-                        Parca(ad: "Tampon", ms: d.ist.tamponMs, renk: Renk.pc)
+                        Parca(ad: L("Ağ", "Network"), ms: (d.rttMs ?? 0) / 2, renk: .teal)
+                        Parca(ad: L("Tampon", "Buffer"), ms: d.ist.tamponMs, renk: Renk.pc)
                         Parca(ad: "Bluetooth", ms: d.cikisGecikmesiMs, renk: .indigo)
                     }
                     .padding(.top, 8)
@@ -410,22 +410,22 @@ struct GecikmeEkrani: View {
             }
 
             Section {
-                SecimSatiri(baslik: "En düşük", aciklama: "Oyun ve video için. Ağ zayıfsa ara ara cızırtı olabilir.", secili: d.ayarlar.gecikme == .enDusuk) { d.ayarlar.gecikme = .enDusuk }
-                SecimSatiri(baslik: "Dengeli", aciklama: "Çoğu ev ağı için en iyisi.", secili: d.ayarlar.gecikme == .dengeli) { d.ayarlar.gecikme = .dengeli }
-                SecimSatiri(baslik: "Kararlı", aciklama: "Müzik ve podcast için. Kalabalık ağda bile kesilmez.", secili: d.ayarlar.gecikme == .kararli) { d.ayarlar.gecikme = .kararli }
+                SecimSatiri(baslik: L("En düşük", "Lowest"), aciklama: L("Oyun ve video için. Ağ zayıfsa ara ara cızırtı olabilir.", "For games and video. On a weak network you may hear the odd crackle."), secili: d.ayarlar.gecikme == .enDusuk) { d.ayarlar.gecikme = .enDusuk }
+                SecimSatiri(baslik: L("Dengeli", "Balanced"), aciklama: L("Çoğu ev ağı için en iyisi.", "Best for most home networks."), secili: d.ayarlar.gecikme == .dengeli) { d.ayarlar.gecikme = .dengeli }
+                SecimSatiri(baslik: L("Kararlı", "Stable"), aciklama: L("Müzik ve podcast için. Kalabalık ağda bile kesilmez.", "For music and podcasts. Holds up even on a busy network."), secili: d.ayarlar.gecikme == .kararli) { d.ayarlar.gecikme = .kararli }
             } footer: {
-                Text("Tampon, ağın o anki durumuna göre kendini ayarlar.")
+                Text(L("Tampon, ağın o anki durumuna göre kendini ayarlar.", "The buffer adjusts itself to how the network is doing."))
             }
 
             Section {
-                Toggle("Görüşme kipi", isOn: $d.ayarlar.gorusmeKipi)
+                Toggle(L("Görüşme kipi", "Call mode"), isOn: $d.ayarlar.gorusmeKipi)
             } header: {
-                Text("Deneysel")
+                Text(L("Deneysel", "Experimental"))
             } footer: {
-                Text("En büyük pay Bluetooth’un. Görüşme kipinde AirPods telefon görüşmesindeki gibi bağlanır: gecikme belirgin düşer ama ses mono ve daha boğuk olur. Oyun ve dudak senkronu için dene, müzik için kapalı tut.")
+                Text(L("En büyük pay Bluetooth’un. Görüşme kipinde AirPods telefon görüşmesindeki gibi bağlanır: gecikme belirgin düşer ama ses mono ve daha boğuk olur. Oyun ve dudak senkronu için dene, müzik için kapalı tut.", "Bluetooth is the biggest share. In call mode, AirPods connect the way they do on a phone call: latency drops noticeably, but the sound turns mono and duller. Try it for games and lip sync, keep it off for music."))
             }
         }
-        .navigationTitle("Gecikme")
+        .navigationTitle(L("Gecikme", "Latency"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -452,31 +452,31 @@ struct MikrofonEkrani: View {
         @Bindable var d = d
         List {
             Section {
-                Toggle("AirPods mikrofonu", isOn: $d.ayarlar.mikAcik.animation())
+                Toggle(L("AirPods mikrofonu", "AirPods microphone"), isOn: $d.ayarlar.mikAcik.animation())
             } footer: {
-                Text("Açıkken AirPods telefon görüşmesi kipine geçer: konuşabilirsin ama dinlediğin sesin kalitesi düşer. İşin bitince kapat.")
+                Text(L("Açıkken AirPods telefon görüşmesi kipine geçer: konuşabilirsin ama dinlediğin sesin kalitesi düşer. İşin bitince kapat.", "While it's on, AirPods switch to phone-call mode: you can talk, but what you're listening to sounds worse. Turn it off when you're done."))
             }
 
             if d.mikIzniReddedildi {
                 Section {
-                    Label("Mikrofon izni kapalı. Ayarlar → SyncYourPods → Mikrofon.", systemImage: "exclamationmark.triangle.fill")
+                    Label(L("Mikrofon izni kapalı. Ayarlar → SyncYourPods → Mikrofon.", "Microphone access is off. Settings → SyncYourPods → Microphone."), systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
-                    Button("Ayarları aç") {
+                    Button(L("Ayarları aç", "Open Settings")) {
                         if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) }
                     }
                 }
             }
 
             Section {
-                Toggle("Yüksek kalite", isOn: $d.ayarlar.mikYuksekKalite)
-                Toggle("Ses yalıtımı", isOn: $d.ayarlar.mikSesYalitimi)
+                Toggle(L("Yüksek kalite", "High quality"), isOn: $d.ayarlar.mikYuksekKalite)
+                Toggle(L("Ses yalıtımı", "Voice isolation"), isOn: $d.ayarlar.mikSesYalitimi)
             } footer: {
-                Text("Yüksek kalite, iOS 26 ve H2 çipli AirPods’ta (AirPods Pro 2, AirPods 4) kalite kaybını azaltır. Ses yalıtımı arka plandaki gürültüyü ve yankıyı bastırır.")
+                Text(L("Yüksek kalite, iOS 26 ve H2 çipli AirPods’ta (AirPods Pro 2, AirPods 4) kalite kaybını azaltır. Ses yalıtımı arka plandaki gürültüyü ve yankıyı bastırır.", "High quality reduces the quality loss on iOS 26 with H2 AirPods (AirPods Pro 2, AirPods 4). Voice isolation cuts background noise and echo."))
             }
 
             Section {
                 HStack {
-                    Text("Bilgisayar")
+                    Text(L("Bilgisayar", "Computer"))
                     Spacer()
                     Text(pcDurumu).foregroundStyle(d.mikDurumu == "noDevice" || d.mikDurumu == "error" ? .orange : .secondary)
                 }
@@ -484,29 +484,29 @@ struct MikrofonEkrani: View {
 
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    AnaEkran.Adim(no: 1, metin: "Bilgisayara ücretsiz VB-CABLE’ı kur (vb-audio.com/Cable) ve bilgisayarı yeniden başlat.")
-                    AnaEkran.Adim(no: 2, metin: "Discord, Zoom ya da Teams’te mikrofon olarak “CABLE Output”u seç.")
-                    AnaEkran.Adim(no: 3, metin: "Buradan mikrofonu aç. SyncYourPods sesi kendisi oraya verir.")
+                    AnaEkran.Adim(no: 1, metin: L("Bilgisayara ücretsiz VB-CABLE’ı kur (vb-audio.com/Cable) ve bilgisayarı yeniden başlat.", "Install the free VB-CABLE on the computer (vb-audio.com/Cable) and restart it."))
+                    AnaEkran.Adim(no: 2, metin: L("Discord, Zoom ya da Teams’te mikrofon olarak “CABLE Output”u seç.", "In Discord, Zoom or Teams, pick “CABLE Output” as the microphone."))
+                    AnaEkran.Adim(no: 3, metin: L("Buradan mikrofonu aç. SyncYourPods sesi kendisi oraya verir.", "Turn the mic on here. SyncYourPods sends your voice there by itself."))
                 }
                 .padding(.vertical, 6)
                 Link(destination: URL(string: "https://vb-audio.com/Cable/")!) {
-                    Label("VB-CABLE indirme sayfası", systemImage: "arrow.up.right.square")
+                    Label(L("VB-CABLE indirme sayfası", "VB-CABLE download page"), systemImage: "arrow.up.right.square")
                 }
             } header: {
-                Text("Bilgisayarda bir kez")
+                Text(L("Bilgisayarda bir kez", "Once, on the computer"))
             }
         }
-        .navigationTitle("Mikrofon")
+        .navigationTitle(L("Mikrofon", "Microphone"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
     private var pcDurumu: String {
-        guard d.durum.bagli else { return "Bağlı değil" }
+        guard d.durum.bagli else { return L("Bağlı değil", "Not connected") }
         switch d.mikDurumu {
-        case "on": return "Mikrofon alınıyor"
-        case "noDevice": return "VB-CABLE bulunamadı"
-        case "error": return "Hata"
-        default: return d.ayarlar.mikAcik ? "Açılıyor…" : "Kapalı"
+        case "on": return L("Mikrofon alınıyor", "Receiving microphone")
+        case "noDevice": return L("VB-CABLE bulunamadı", "VB-CABLE not found")
+        case "error": return L("Hata", "Error")
+        default: return d.ayarlar.mikAcik ? L("Açılıyor…", "Starting…") : L("Kapalı", "Off")
         }
     }
 }
@@ -523,7 +523,7 @@ struct BilgisayarlarEkrani: View {
                 if d.bulunanlar.isEmpty {
                     HStack(spacing: 10) {
                         ProgressView()
-                        Text("Aranıyor…").foregroundStyle(.secondary)
+                        Text(L("Aranıyor…", "Searching…")).foregroundStyle(.secondary)
                     }
                 }
                 ForEach(d.bulunanlar) { pc in
@@ -539,24 +539,24 @@ struct BilgisayarlarEkrani: View {
                     }
                 }
             } header: {
-                Text("Ağdaki bilgisayarlar")
+                Text(L("Ağdaki bilgisayarlar", "Computers on your network"))
             } footer: {
-                Text("Bilgisayarda SyncYourPods açık olmalı ve iPhone ile aynı ağda olmalı. Windows ilk açılışta güvenlik duvarı izni sorarsa “Özel ağlar”a izin ver.")
+                Text(L("Bilgisayarda SyncYourPods açık olmalı ve iPhone ile aynı ağda olmalı. Windows ilk açılışta güvenlik duvarı izni sorarsa “Özel ağlar”a izin ver.", "SyncYourPods has to be running on the computer, on the same network as your iPhone. If Windows asks for firewall access the first time, allow “Private networks”."))
             }
 
             Section {
-                Toggle("Otomatik bağlan", isOn: $d.ayarlar.otomatikBaglan)
+                Toggle(L("Otomatik bağlan", "Connect automatically"), isOn: $d.ayarlar.otomatikBaglan)
             } footer: {
-                Text("Uygulama açılınca son bilgisayara kendiliğinden bağlanır.")
+                Text(L("Uygulama açılınca son bilgisayara kendiliğinden bağlanır.", "Connects to the last computer when the app opens."))
             }
 
             if d.durum.bagli {
                 Section {
-                    Button("Bağlantıyı kes", role: .destructive) { d.kes() }
+                    Button(L("Bağlantıyı kes", "Disconnect"), role: .destructive) { d.kes() }
                 }
             }
         }
-        .navigationTitle("Bilgisayar")
+        .navigationTitle(L("Bilgisayar", "Computer"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -569,24 +569,24 @@ struct GurultuEkrani: View {
             Section {
                 VStack(spacing: 14) {
                     HStack(spacing: 22) {
-                        mod("person.wave.2.fill", "Gürültü\nEngelleme")
-                        mod("ear.fill", "Uyarlanabilir")
-                        mod("person.2.wave.2.fill", "Ortam\nSesi")
+                        mod("person.wave.2.fill", L("Gürültü\nEngelleme", "Noise\nCancellation"))
+                        mod("ear.fill", L("Uyarlanabilir", "Adaptive"))
+                        mod("person.2.wave.2.fill", L("Ortam\nSesi", "Trans-\nparency"))
                     }
                     .padding(.top, 8)
                 }
                 .frame(maxWidth: .infinity)
             } footer: {
-                Text("Dinleme kipi AirPods’un kendi ayarıdır. Apple bu ayarın başka uygulamalarca değiştirilmesine izin vermiyor; SyncYourPods sesini hangi kipte olursan ol aynen taşır.")
+                Text(L("Dinleme kipi AirPods’un kendi ayarıdır. Apple bu ayarın başka uygulamalarca değiştirilmesine izin vermiyor; SyncYourPods sesini hangi kipte olursan ol aynen taşır.", "The listening mode belongs to your AirPods. Apple doesn't let other apps change it; SyncYourPods carries the sound the same way whichever mode you're in."))
             }
 
-            Section("Kipi değiştirmek için") {
-                Label("AirPods’un sapını basılı tut.", systemImage: "hand.point.up.left.fill")
-                Label("Kontrol Merkezi’nde ses kaydırıcısını basılı tut.", systemImage: "switch.2")
-                Label("Ayarlar → AirPods’un adı.", systemImage: "gearshape.fill")
+            Section(L("Kipi değiştirmek için", "To change the mode")) {
+                Label(L("AirPods’un sapını basılı tut.", "Press and hold the stem of your AirPods."), systemImage: "hand.point.up.left.fill")
+                Label(L("Kontrol Merkezi’nde ses kaydırıcısını basılı tut.", "Press and hold the volume slider in Control Center."), systemImage: "switch.2")
+                Label(L("Ayarlar → AirPods’un adı.", "Settings → your AirPods' name."), systemImage: "gearshape.fill")
             }
         }
-        .navigationTitle("Gürültü Engelleme")
+        .navigationTitle(L("Gürültü Engelleme", "Noise Control"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -610,35 +610,35 @@ struct TanilamaEkrani: View {
         @Bindable var d = d
         let i = d.ist
         List {
-            Section("Geçiş") {
-                Satir("Öncelikli ses ipucu", d.ipucu ? "Var" : "Yok", vurgu: d.ipucu)
-                Satir("Başka ses çalıyor", d.digerSes ? "Evet" : "Hayır", vurgu: d.digerSes)
-                Satir("Ses nerede", d.telefonda ? "iPhone" : "Bilgisayar")
-                Toggle("Geniş algılama", isOn: $d.ayarlar.genisAlgilama)
+            Section(L("Geçiş", "Switching")) {
+                Satir(L("Öncelikli ses ipucu", "Secondary audio hint"), d.ipucu ? L("Var", "Yes") : L("Yok", "No"), vurgu: d.ipucu)
+                Satir(L("Başka ses çalıyor", "Other audio playing"), d.digerSes ? L("Evet", "Yes") : L("Hayır", "No"), vurgu: d.digerSes)
+                Satir(L("Ses nerede", "Sound is on"), d.telefonda ? "iPhone" : L("Bilgisayar", "Computer"))
+                Toggle(L("Geniş algılama", "Wide detection"), isOn: $d.ayarlar.genisAlgilama)
             }
-            Section("Tampon") {
-                Satir("Durum", i.durum == .caliyor ? "Çalıyor" : (i.durum == .doluyor ? "Doluyor" : "Boş"))
-                Satir("Doluluk / hedef", String(format: "%.0f / %.0f ms", i.tamponMs, i.hedefMs))
-                Satir("Ağ titreşimi", String(format: "%.1f ms", i.titremeMs))
-                Satir("Saat kayması", String(format: "%+.0f ppm", i.kaymaPpm))
-                Satir("Giriş hızı", "\(Int(i.girisHizi)) Hz")
+            Section(L("Tampon", "Buffer")) {
+                Satir(L("Durum", "State"), i.durum == .caliyor ? L("Çalıyor", "Playing") : (i.durum == .doluyor ? L("Doluyor", "Filling") : L("Boş", "Empty")))
+                Satir(L("Doluluk / hedef", "Fill / target"), String(format: "%.0f / %.0f ms", i.tamponMs, i.hedefMs))
+                Satir(L("Ağ titreşimi", "Network jitter"), String(format: "%.1f ms", i.titremeMs))
+                Satir(L("Saat kayması", "Clock drift"), String(format: "%+.0f ppm", i.kaymaPpm))
+                Satir(L("Giriş hızı", "Input rate"), "\(Int(i.girisHizi)) Hz")
             }
-            Section("Paketler") {
-                Satir("Alınan", "\(i.alinan)")
-                Satir("Yedekten kurtarılan", "\(i.kurtarilan)")
-                Satir("Kayıp (örtülen)", "\(i.kayip)", vurgu: i.kayip > 0)
-                Satir("Geç gelen", "\(i.gec)")
-                Satir("Boşalma", "\(i.bosalma)", vurgu: i.bosalma > 0)
-                Satir("Atlama", "\(i.atlama)")
+            Section(L("Paketler", "Packets")) {
+                Satir(L("Alınan", "Received"), "\(i.alinan)")
+                Satir(L("Yedekten kurtarılan", "Recovered from spare"), "\(i.kurtarilan)")
+                Satir(L("Kayıp (örtülen)", "Lost (concealed)"), "\(i.kayip)", vurgu: i.kayip > 0)
+                Satir(L("Geç gelen", "Late"), "\(i.gec)")
+                Satir(L("Boşalma", "Underruns"), "\(i.bosalma)", vurgu: i.bosalma > 0)
+                Satir(L("Atlama", "Skips"), "\(i.atlama)")
             }
-            Section("Çıkış") {
-                Satir("Rota", d.rota.ad)
+            Section(L("Çıkış", "Output")) {
+                Satir(L("Rota", "Route"), d.rota.ad)
                 Satir("Bluetooth + iOS", String(format: "%.0f ms", d.cikisGecikmesiMs))
-                if let r = d.rttMs { Satir("Ağ gidiş-dönüş", String(format: "%.0f ms", r)) }
-                Satir("Mikrofon (PC)", d.mikDurumu)
+                if let r = d.rttMs { Satir(L("Ağ gidiş-dönüş", "Network round trip"), String(format: "%.0f ms", r)) }
+                Satir(L("Mikrofon (PC)", "Microphone (PC)"), d.mikDurumu)
             }
         }
-        .navigationTitle("Tanılama")
+        .navigationTitle(L("Tanılama", "Diagnostics"))
         .navigationBarTitleDisplayMode(.inline)
         .monospacedDigit()
     }
@@ -670,16 +670,16 @@ struct HakkindaEkrani: View {
                         .background(LinearGradient(colors: [Renk.pc, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
                                     in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                     Text("SyncYourPods").font(.title3.weight(.semibold))
-                    Text("Sürüm \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
+                    Text(L("Sürüm", "Version") + " \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
             } footer: {
-                Text("Bluetooth’u olmayan bilgisayarın sesini, aynı ağdaki iPhone üzerinden AirPods’a taşır. Ses yalnız evinin ağında dolaşır; hiçbir sunucuya gitmez.")
+                Text(L("Bluetooth’u olmayan bilgisayarın sesini, aynı ağdaki iPhone üzerinden AirPods’a taşır. Ses yalnız evinin ağında dolaşır; hiçbir sunucuya gitmez.", "Brings your computer's sound to your AirPods through the iPhone on the same network. The audio stays on your home network and never goes to a server."))
             }
         }
-        .navigationTitle("Hakkında")
+        .navigationTitle(L("Hakkında", "About"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -118,18 +118,18 @@ public enum Ekolayzer {
     public static let sinir: Float = 12
 
     public static let hazirlar: [EqHazir] = [
-        EqHazir(id: "duz", ad: "Düz", kazanclar: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        EqHazir(id: "bas", ad: "Bas Güçlendirici", kazanclar: [6, 5, 4, 2.5, 1, 0, 0, 0, 0, 0]),
-        EqHazir(id: "basAzalt", ad: "Bas Azaltıcı", kazanclar: [-6, -5, -4, -2.5, -1, 0, 0, 0, 0, 0]),
-        EqHazir(id: "tiz", ad: "Tiz Güçlendirici", kazanclar: [0, 0, 0, 0, 0, 0.5, 1.5, 3, 4.5, 5.5]),
-        EqHazir(id: "vokal", ad: "Vokal", kazanclar: [-2, -1.5, -1, 0.5, 2.5, 3.5, 3, 1.5, 0, -1]),
-        EqHazir(id: "podcast", ad: "Konuşma", kazanclar: [-6, -4, -2, 0, 2, 3.5, 3.5, 2, 0, -2]),
-        EqHazir(id: "film", ad: "Film", kazanclar: [4, 3, 1.5, 0, -0.5, 0, 1.5, 2.5, 2, 1]),
-        EqHazir(id: "oyun", ad: "Oyun", kazanclar: [3, 2, 0, -1, -1, 0.5, 2, 3.5, 3, 1.5]),
-        EqHazir(id: "elektronik", ad: "Elektronik", kazanclar: [5, 4, 1.5, 0, -1.5, 1, 0, 1.5, 4, 4.5]),
-        EqHazir(id: "akustik", ad: "Akustik", kazanclar: [3, 2.5, 2, 1, 1, 1, 2, 2.5, 2, 1.5]),
+        EqHazir(id: "duz", ad: L("Düz", "Flat"), kazanclar: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        EqHazir(id: "bas", ad: L("Bas Güçlendirici", "Bass Booster"), kazanclar: [6, 5, 4, 2.5, 1, 0, 0, 0, 0, 0]),
+        EqHazir(id: "basAzalt", ad: L("Bas Azaltıcı", "Bass Reducer"), kazanclar: [-6, -5, -4, -2.5, -1, 0, 0, 0, 0, 0]),
+        EqHazir(id: "tiz", ad: L("Tiz Güçlendirici", "Treble Booster"), kazanclar: [0, 0, 0, 0, 0, 0.5, 1.5, 3, 4.5, 5.5]),
+        EqHazir(id: "vokal", ad: L("Vokal", "Vocal"), kazanclar: [-2, -1.5, -1, 0.5, 2.5, 3.5, 3, 1.5, 0, -1]),
+        EqHazir(id: "podcast", ad: L("Konuşma", "Spoken Word"), kazanclar: [-6, -4, -2, 0, 2, 3.5, 3.5, 2, 0, -2]),
+        EqHazir(id: "film", ad: L("Film", "Movie"), kazanclar: [4, 3, 1.5, 0, -0.5, 0, 1.5, 2.5, 2, 1]),
+        EqHazir(id: "oyun", ad: L("Oyun", "Gaming"), kazanclar: [3, 2, 0, -1, -1, 0.5, 2, 3.5, 3, 1.5]),
+        EqHazir(id: "elektronik", ad: L("Elektronik", "Electronic"), kazanclar: [5, 4, 1.5, 0, -1.5, 1, 0, 1.5, 4, 4.5]),
+        EqHazir(id: "akustik", ad: L("Akustik", "Acoustic"), kazanclar: [3, 2.5, 2, 1, 1, 1, 2, 2.5, 2, 1.5]),
         EqHazir(id: "rock", ad: "Rock", kazanclar: [4.5, 3.5, 2, 0.5, -0.5, -0.5, 0.5, 2, 3, 3.5]),
-        EqHazir(id: "gece", ad: "Gece", kazanclar: [-3, -2, -1, 0, 1, 1.5, 1.5, 0.5, -1, -2]),
+        EqHazir(id: "gece", ad: L("Gece", "Late Night"), kazanclar: [-3, -2, -1, 0, 1, 1.5, 1.5, 0.5, -1, -2]),
     ]
 
     public static func hazir(_ id: String) -> EqHazir? { hazirlar.first { $0.id == id } }

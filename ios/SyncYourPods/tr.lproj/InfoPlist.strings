@@ -1,0 +1,2 @@
+"NSLocalNetworkUsageDescription" = "Aynı ağdaki bilgisayarı bulup sesini AirPods’a taşımak için. Ses yalnız evinin ağında dolaşır.";
+"NSMicrophoneUsageDescription" = "AirPods mikrofonunu bilgisayardaki görüşmelerde kullanabilmen için. Yalnız mikrofonu açtığında dinlenir.";

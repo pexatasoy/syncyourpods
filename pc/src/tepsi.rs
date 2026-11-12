@@ -27,7 +27,11 @@ pub fn uyari(metin: &str) {
 
 /// Yeni iPhone ilk kez bağlanırken sorulur. Cevap kalıcıdır.
 pub fn onay_sor(telefon: &str) -> bool {
-    let metin = format!("“{}” bu bilgisayarın sesini AirPods’a aktarmak istiyor.\n\nİzin verilsin mi?", telefon);
+    let metin = if crate::dil::turkce() {
+        format!("“{}” bu bilgisayarın sesini AirPods’a aktarmak istiyor.\n\nİzin verilsin mi?", telefon)
+    } else {
+        format!("“{}” wants to play this computer's sound on its AirPods.\n\nAllow it?", telefon)
+    };
     unsafe {
         MessageBoxW(None, &HSTRING::from(metin), w!("SyncYourPods"), MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TOPMOST) == IDYES
     }

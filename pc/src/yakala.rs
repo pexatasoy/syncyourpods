@@ -119,7 +119,7 @@ pub mod win {
             c.OpenPropertyStore(STGM_READ)
                 .and_then(|s| s.GetValue(&PKEY_Device_FriendlyName))
                 .map(|v| v.to_string())
-                .unwrap_or_else(|_| "Ses aygıtı".into())
+                .unwrap_or_else(|_| crate::dil::t("Ses aygıtı", "Audio device").into())
         }
     }
 

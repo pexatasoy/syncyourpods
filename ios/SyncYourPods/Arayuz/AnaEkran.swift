@@ -32,7 +32,7 @@ struct AnaEkran: View {
                     NavigationLink { AyarlarEkrani() } label: {
                         Image(systemName: "gearshape").font(.body.weight(.medium))
                     }
-                    .accessibilityLabel("Ayarlar")
+                    .accessibilityLabel(L("Ayarlar", "Settings"))
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -96,7 +96,7 @@ struct AnaEkran: View {
                     }
                     Spacer(minLength: 0)
                     if d.telefonda && d.ayarlar.medyaDuraklat {
-                        Text("Duraklatıldı").font(.caption2.weight(.medium)).foregroundStyle(Renk.telefon)
+                        Text(L("Duraklatıldı", "Paused")).font(.caption2.weight(.medium)).foregroundStyle(Renk.telefon)
                             .padding(.horizontal, 8).padding(.vertical, 4)
                             .background(Renk.telefon.opacity(0.12), in: Capsule())
                     }
@@ -107,7 +107,7 @@ struct AnaEkran: View {
 
         Kart {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Bilgisayar sesi").font(.subheadline.weight(.semibold))
+                Text(L("Bilgisayar sesi", "Computer volume")).font(.subheadline.weight(.semibold))
                 HStack(spacing: 12) {
                     Image(systemName: "speaker.fill").foregroundStyle(.secondary)
                     Slider(value: $d.ayarlar.ses, in: 0...1)
@@ -121,28 +121,28 @@ struct AnaEkran: View {
             Button {
                 d.ayarlar.mikAcik.toggle()
             } label: {
-                Kutucuk(simge: d.ayarlar.mikAcik ? "mic.fill" : "mic.slash.fill", baslik: "Mikrofon",
+                Kutucuk(simge: d.ayarlar.mikAcik ? "mic.fill" : "mic.slash.fill", baslik: L("Mikrofon", "Microphone"),
                         alt: mikAlt, acik: d.ayarlar.mikAcik, renk: .red)
             }
             Button {
                 d.ayarlar.otomatikGecis.toggle()
             } label: {
-                Kutucuk(simge: "arrow.left.arrow.right", baslik: "Otomatik geçiş",
-                        alt: d.ayarlar.otomatikGecis ? "Açık" : "Kapalı", acik: d.ayarlar.otomatikGecis, renk: Renk.telefon)
+                Kutucuk(simge: "arrow.left.arrow.right", baslik: L("Otomatik geçiş", "Auto switching"),
+                        alt: d.ayarlar.otomatikGecis ? L("Açık", "On") : L("Kapalı", "Off"), acik: d.ayarlar.otomatikGecis, renk: Renk.telefon)
             }
             NavigationLink { EkolayzerEkrani() } label: {
-                Kutucuk(simge: "slider.vertical.3", baslik: "Ekolayzer",
-                        alt: d.ayarlar.eqAcik ? eqAdi : "Kapalı", acik: d.ayarlar.eqAcik, renk: .indigo)
+                Kutucuk(simge: "slider.vertical.3", baslik: L("Ekolayzer", "Equalizer"),
+                        alt: d.ayarlar.eqAcik ? eqAdi : L("Kapalı", "Off"), acik: d.ayarlar.eqAcik, renk: .indigo)
             }
             NavigationLink { GecikmeEkrani() } label: {
-                Kutucuk(simge: "timer", baslik: "Gecikme",
+                Kutucuk(simge: "timer", baslik: L("Gecikme", "Latency"),
                         alt: "≈ \(Int(d.toplamGecikmeMs.rounded())) ms", acik: false)
             }
         }
         .buttonStyle(.plain)
 
         if d.ayarlar.mikAcik {
-            Label("Mikrofon açıkken AirPods telefon görüşmesi kipine geçer, dinlediğin sesin kalitesi düşer.", systemImage: "info.circle")
+            Label(L("Mikrofon açıkken AirPods telefon görüşmesi kipine geçer, dinlediğin sesin kalitesi düşer.", "With the mic on, AirPods switch to phone-call mode and what you're listening to sounds worse."), systemImage: "info.circle")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -151,7 +151,7 @@ struct AnaEkran: View {
         }
         if d.mikDurumu == "noDevice" {
             NavigationLink { MikrofonEkrani() } label: {
-                Label("Bilgisayarda sanal mikrofon yok. Kurulum için dokun.", systemImage: "exclamationmark.triangle.fill")
+                Label(L("Bilgisayarda sanal mikrofon yok. Kurulum için dokun.", "No virtual microphone on the computer. Tap to set it up."), systemImage: "exclamationmark.triangle.fill")
                     .font(.footnote.weight(.medium))
                     .foregroundStyle(.orange)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -172,17 +172,17 @@ struct AnaEkran: View {
     }
 
     private var mikAlt: String {
-        guard d.ayarlar.mikAcik else { return "Kapalı" }
+        guard d.ayarlar.mikAcik else { return L("Kapalı", "Off") }
         switch d.mikDurumu {
-        case "on": return "Açık"
-        case "noDevice": return "Sanal mikrofon yok"
-        case "error": return "Hata"
-        default: return "Açılıyor…"
+        case "on": return L("Açık", "On")
+        case "noDevice": return L("Sanal mikrofon yok", "No virtual mic")
+        case "error": return L("Hata", "Error")
+        default: return L("Açılıyor…", "Starting…")
         }
     }
 
     private var eqAdi: String {
-        d.ayarlar.eqHazir == "ozel" ? "Özel" : (Ekolayzer.hazir(d.ayarlar.eqHazir)?.ad ?? "Açık")
+        d.ayarlar.eqHazir == "ozel" ? L("Özel", "Custom") : (Ekolayzer.hazir(d.ayarlar.eqHazir)?.ad ?? L("Açık", "On"))
     }
 
     private var kayipYuzde: Double {
@@ -198,8 +198,8 @@ struct AnaEkran: View {
 
     private var altSatir: String {
         var s = "\(d.pcAdi ?? "PC") · \(Int(d.ist.girisHizi / 1000)) kHz"
-        if let r = d.rttMs { s += " · ağ \(Int(r.rounded())) ms" }
-        s += String(format: " · kayıp %%%.1f", kayipYuzde)
+        if let r = d.rttMs { s += L(" · ağ \(Int(r.rounded())) ms", " · network \(Int(r.rounded())) ms") }
+        s += String(format: L(" · kayıp %%%.1f", " · loss %.1f%%"), kayipYuzde)
         return s
     }
 
@@ -211,8 +211,8 @@ struct AnaEkran: View {
             Kart {
                 Label {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("İzin bekleniyor").font(.subheadline.weight(.semibold))
-                        Text("\(ad) ekranında çıkan pencerede “Evet”e bas. Bu yalnızca bir kez sorulur.")
+                        Text(L("İzin bekleniyor", "Waiting for permission")).font(.subheadline.weight(.semibold))
+                        Text(L("\(ad) ekranında çıkan pencerede “Evet”e bas. Bu yalnızca bir kez sorulur.", "Click “Yes” in the window that pops up on \(ad). You're only asked once."))
                             .font(.footnote).foregroundStyle(.secondary)
                     }
                 } icon: {
@@ -222,9 +222,9 @@ struct AnaEkran: View {
         case let .reddedildi(ad):
             Kart {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("\(ad) bağlantıya izin vermedi.").font(.subheadline.weight(.semibold))
+                    Text(L("\(ad) bağlantıya izin vermedi.", "\(ad) didn't allow the connection.")).font(.subheadline.weight(.semibold))
                     if let pc = d.bulunanlar.first(where: { $0.ad == ad }) {
-                        Button("Yeniden dene") { d.baglan(pc) }.buttonStyle(.borderedProminent)
+                        Button(L("Yeniden dene", "Try again")) { d.baglan(pc) }.buttonStyle(.borderedProminent)
                     }
                 }
             }
@@ -232,7 +232,7 @@ struct AnaEkran: View {
             Kart {
                 HStack(spacing: 12) {
                     ProgressView()
-                    Text("Bağlanıyor…").font(.subheadline)
+                    Text(L("Bağlanıyor…", "Connecting…")).font(.subheadline)
                 }
             }
         default:
@@ -241,7 +241,7 @@ struct AnaEkran: View {
 
         if !d.bulunanlar.isEmpty && !isBaglaniyor {
             VStack(alignment: .leading, spacing: 8) {
-                Text("AĞDAKİ BİLGİSAYARLAR").font(.footnote).foregroundStyle(.secondary).padding(.horizontal, 4)
+                Text(L("AĞDAKİ BİLGİSAYARLAR", "COMPUTERS ON YOUR NETWORK")).font(.footnote).foregroundStyle(.secondary).padding(.horizontal, 4)
                 VStack(spacing: 0) {
                     ForEach(d.bulunanlar) { pc in
                         Button { d.baglan(pc) } label: {
@@ -249,7 +249,7 @@ struct AnaEkran: View {
                                 Image(systemName: "desktopcomputer").foregroundStyle(Renk.pc).frame(width: 28)
                                 Text(pc.ad).foregroundStyle(.primary)
                                 Spacer()
-                                Text("Bağlan").font(.subheadline.weight(.medium)).foregroundStyle(Renk.pc)
+                                Text(L("Bağlan", "Connect")).font(.subheadline.weight(.medium)).foregroundStyle(Renk.pc)
                             }
                             .padding(.vertical, 12)
                             .padding(.horizontal, 16)
@@ -266,13 +266,13 @@ struct AnaEkran: View {
         if d.bulunanlar.isEmpty {
             Kart(bosluk: 20) {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Başlarken").font(.headline)
-                    Adim(no: 1, metin: "Bilgisayarına SyncYourPods’u kur ve aç. Saatin yanında simgesi görünür.")
-                    Adim(no: 2, metin: "iPhone ile bilgisayar aynı ağda olsun (bilgisayar kabloyla da bağlı olabilir).")
-                    Adim(no: 3, metin: "Bilgisayarda çıkan izin penceresine “Evet” de. Gerisi kendiliğinden.")
+                    Text(L("Başlarken", "Getting started")).font(.headline)
+                    Adim(no: 1, metin: L("Bilgisayarına SyncYourPods’u kur ve aç. Saatin yanında simgesi görünür.", "Install and open SyncYourPods on your computer. Its icon shows up next to the clock."))
+                    Adim(no: 2, metin: L("iPhone ile bilgisayar aynı ağda olsun (bilgisayar kabloyla da bağlı olabilir).", "Put your iPhone and the computer on the same network (the computer can be on a cable)."))
+                    Adim(no: 3, metin: L("Bilgisayarda çıkan izin penceresine “Evet” de. Gerisi kendiliğinden.", "Click “Yes” in the permission window on the computer. The rest happens by itself."))
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.small)
-                        Text("Ağda bilgisayar aranıyor…").font(.footnote).foregroundStyle(.secondary)
+                        Text(L("Ağda bilgisayar aranıyor…", "Looking for computers on the network…")).font(.footnote).foregroundStyle(.secondary)
                     }
                     .padding(.top, 4)
                 }

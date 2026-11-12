@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="__DIL__">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -173,6 +173,8 @@
 
 <script>
 "use strict";
+const EN = document.documentElement.lang === "en" || new URLSearchParams(location.search).get("dil") === "en";
+const T = (tr, en) => EN ? en : tr;
 // ───────────────────────── Simgeler (SF Symbols benzeri, çizgi) ─────────────────────────
 const S_ = (yol, g = 24) => `<svg viewBox="0 0 ${g} ${g}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${yol}</svg>`;
 const SIMGE = {
@@ -246,8 +248,8 @@ const eqKazanclari = () => {
   if (a.eqHazir === "ozel") return a.eqOzel || Array(10).fill(0);
   const h = hazirlar().find(x => x.id === a.eqHazir); return h ? h.k : Array(10).fill(0);
 };
-const eqAdi = () => { const a = A(); if (!a) return ""; if (a.eqHazir === "ozel") return "Özel"; const h = hazirlar().find(x => x.id === a.eqHazir); return h ? h.ad : "Açık"; };
-const GECIKME_AD = { enDusuk: "En düşük", dengeli: "Dengeli", kararli: "Kararlı" };
+const eqAdi = () => { const a = A(); if (!a) return ""; if (a.eqHazir === "ozel") return T("Özel", "Custom"); const h = hazirlar().find(x => x.id === a.eqHazir); return h ? h.ad : T("Açık", "On"); };
+const GECIKME_AD = { enDusuk: T("En düşük", "Lowest"), dengeli: T("Dengeli", "Balanced"), kararli: T("Kararlı", "Stable") };
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // ───────────────────────── Yapı taşları ─────────────────────────
@@ -269,28 +271,28 @@ const SAYFA = {
     <div id="bagli-icerik" class="yigit">
       <div class="kart" style="padding:12px 10px"><div class="zincir" id="zincir"></div></div>
       <div class="kart" id="calan-kart"><div class="calan"><div class="k"><span class="dalga-simge" id="dalga"><span></span><span></span><span></span><span></span></span></div>
-        <div class="y"><b id="calan-baslik"></b><small id="calan-alt"></small></div><span class="rozet gizli" id="duraklatildi">Duraklatıldı</span></div></div>
-      <div class="kart" style="padding:10px 14px 6px"><div style="font-weight:600;font-size:13px;color:var(--ikincil)">Bilgisayar sesi</div>
+        <div class="y"><b id="calan-baslik"></b><small id="calan-alt"></small></div><span class="rozet gizli" id="duraklatildi">${T("Duraklatıldı", "Paused")}</span></div></div>
+      <div class="kart" style="padding:10px 14px 6px"><div style="font-weight:600;font-size:13px;color:var(--ikincil)">${T("Bilgisayar sesi", "Computer volume")}</div>
         <div class="kaydir">${SIMGE.sesAz.replace('<svg', '<svg width="16" height="16"')}<input type="range" min="0" max="1" step="0.01" data-tel="ses">${SIMGE.ses.replace('<svg', '<svg width="20" height="20"')}</div></div>
       <div class="kutular">
-        <button class="kutu" id="k-mik" style="--r:var(--kirmizi)"><span class="s" id="k-mik-s"></span><span><b>Mikrofon</b><small id="k-mik-a"></small></span></button>
-        <button class="kutu" id="k-gecis" style="--r:var(--turuncu)"><span class="s">${SIMGE.degis}</span><span><b>Geçiş</b><small id="k-gecis-a"></small></span></button>
-        <button class="kutu" id="k-eq" style="--r:var(--indigo)" data-git="eq"><span class="s">${SIMGE.eq}</span><span><b>Ekolayzer</b><small id="k-eq-a"></small></span></button>
-        <button class="kutu" id="k-pcses" style="--r:var(--pembe)"><span class="s">${SIMGE.pc}</span><span><b>Sessiz PC</b><small id="k-pcses-a"></small></span></button>
+        <button class="kutu" id="k-mik" style="--r:var(--kirmizi)"><span class="s" id="k-mik-s"></span><span><b>${T("Mikrofon", "Microphone")}</b><small id="k-mik-a"></small></span></button>
+        <button class="kutu" id="k-gecis" style="--r:var(--turuncu)"><span class="s">${SIMGE.degis}</span><span><b>${T("Geçiş", "Switching")}</b><small id="k-gecis-a"></small></span></button>
+        <button class="kutu" id="k-eq" style="--r:var(--indigo)" data-git="eq"><span class="s">${SIMGE.eq}</span><span><b>${T("Ekolayzer", "Equalizer")}</b><small id="k-eq-a"></small></span></button>
+        <button class="kutu" id="k-pcses" style="--r:var(--pembe)"><span class="s">${SIMGE.pc}</span><span><b>${T("Sessiz PC", "Mute PC")}</b><small id="k-pcses-a"></small></span></button>
       </div>
-      <div class="not gizli" id="mik-not">${SIMGE.bilgi}<span>Mikrofon açıkken AirPods telefon görüşmesi kipine geçer, dinlediğin sesin kalitesi düşer.</span></div>
-      <div class="not gizli" id="kablo-not" style="color:var(--turuncu)">${SIMGE.uyari}<span>Bilgisayarda sanal mikrofon yok. Kurulum için Ayarlar → Mikrofon.</span></div>
+      <div class="not gizli" id="mik-not">${SIMGE.bilgi}<span>${T("Mikrofon açıkken AirPods telefon görüşmesi kipine geçer, dinlediğin sesin kalitesi düşer.", "With the mic on, AirPods switch to phone-call mode and what you're listening to sounds worse.")}</span></div>
+      <div class="not gizli" id="kablo-not" style="color:var(--turuncu)">${SIMGE.uyari}<span>${T("Bilgisayarda sanal mikrofon yok. Kurulum için Ayarlar → Mikrofon.", "No virtual microphone on the computer. To set it up: Settings → Microphone.")}</span></div>
       <button class="alt-satir" data-git="tanilama"><span class="nokta" id="alt-nokta"></span><span id="alt-yazi" class="gr"></span></button>
     </div>
     <div id="bekle-icerik" class="yigit">
       <div class="kart" style="padding:18px">
-        <div style="font-weight:700;font-size:16px;margin-bottom:14px">Başlarken</div>
-        <div class="adim"><i>1</i><span>iPhone’da <b>SyncYourPods</b>’u aç. Bu bilgisayarla aynı ağda olsun.</span></div>
-        <div class="adim"><i>2</i><span>İlk bağlantıda çıkan izin penceresine <b>Evet</b> de.</span></div>
-        <div class="adim"><i>3</i><span>AirPods’u tak. Bilgisayarın sesi kulağında.</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;color:var(--ikincil);font-size:13px"><span class="donen"></span>iPhone bekleniyor…</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:14px">${T("Başlarken", "Getting started")}</div>
+        <div class="adim"><i>1</i><span>${T("iPhone’da <b>SyncYourPods</b>’u aç. Bu bilgisayarla aynı ağda olsun.", "Open <b>SyncYourPods</b> on your iPhone, on the same network as this computer.")}</span></div>
+        <div class="adim"><i>2</i><span>${T("İlk bağlantıda çıkan izin penceresine <b>Evet</b> de.", "The first time, click <b>Yes</b> in the permission window.")}</span></div>
+        <div class="adim"><i>3</i><span>${T("AirPods’u tak. Bilgisayarın sesi kulağında.", "Put in your AirPods. The computer's sound is in your ears.")}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:16px;color:var(--ikincil);font-size:13px"><span class="donen"></span>${T("iPhone bekleniyor…", "Waiting for iPhone…")}</div>
       </div>
-      <div class="liste"><button class="satir mavi" id="site-ac"><span class="ad">iPhone uygulamasını yükle</span>${SIMGE.baglanti.replace('<svg', '<svg width="16" height="16"')}</button></div>
+      <div class="liste"><button class="satir mavi" id="site-ac"><span class="ad">${T("iPhone uygulamasını yükle", "Get the iPhone app")}</span>${SIMGE.baglanti.replace('<svg', '<svg width="16" height="16"')}</button></div>
     </div>`,
     guncelle: () => {
       const k = kaynak(), a = A();
@@ -301,8 +303,8 @@ const SAYFA = {
       daire.classList.toggle("aktif", k === "pc" || k === "telefon");
       const simgeAd = (k === "yok" || k === "kutu") ? "kulaklik" : (rota && /airpods/i.test(rota.symbol || "") ? "airpods" : "kulaklik");
       const ks = document.getElementById("kahraman-simge"); if (ks.dataset.s !== simgeAd) { ks.innerHTML = SIMGE[simgeAd]; ks.dataset.s = simgeAd; }
-      metin("rota-ad", !bagli() ? "iPhone bekleniyor" : (D.kulaklik ? (rota ? rota.name : D.telefonAdi) : "AirPods kutuda"));
-      metin("durum-yazi", { yok: "iPhone’da SyncYourPods’u aç", kutu: "Bilgisayar kendi sesine döndü", pc: "Bilgisayardan çalıyor", telefon: "iPhone’dan çalıyor", sessiz: "Bilgisayar sessiz" }[k]);
+      metin("rota-ad", !bagli() ? T("iPhone bekleniyor", "Waiting for iPhone") : (D.kulaklik ? (rota ? rota.name : D.telefonAdi) : T("AirPods kutuda", "AirPods in their case")));
+      metin("durum-yazi", { yok: T("iPhone’da SyncYourPods’u aç", "Open SyncYourPods on your iPhone"), kutu: T("Bilgisayar kendi sesine döndü", "The computer is back on its own speakers"), pc: T("Bilgisayardan çalıyor", "Playing from the computer"), telefon: T("iPhone’dan çalıyor", "Playing from iPhone"), sessiz: T("Bilgisayar sessiz", "Computer is quiet") }[k]);
       goster("bagli-icerik", bagli()); goster("bekle-icerik", !bagli());
       if (!bagli()) return;
       // Zincir
@@ -313,7 +315,7 @@ const SAYFA = {
         <div class="hat ${k === "pc" ? "akiyor" : ""}" style="--v:var(--mavi)"><i></i><i></i><i></i></div>
         <div class="dugum ${k === "telefon" ? "vurgu" : ""}" style="--v:var(--turuncu)"><div class="yuv">${SIMGE.iphone}</div><span>iPhone</span></div>
         <div class="hat ${(k === "pc" || k === "telefon") ? "akiyor" : ""}" style="--v:${v}"><i></i><i></i><i></i></div>
-        <div class="dugum ${D.kulaklik ? "" : "soluk"}"><div class="yuv">${simgeAd === "airpods" ? SIMGE.airpods : SIMGE.kulaklik}</div><span>Kulaklık</span></div>`;
+        <div class="dugum ${D.kulaklik ? "" : "soluk"}"><div class="yuv">${simgeAd === "airpods" ? SIMGE.airpods : SIMGE.kulaklik}</div><span>${T("Kulaklık", "Headphones")}</span></div>`;
       if (z.dataset.h !== k + D.kulaklik + simgeAd + D.pc.ad) { z.innerHTML = html; z.dataset.h = k + D.kulaklik + simgeAd + D.pc.ad; }
       // Çalan
       goster("calan-kart", !!D.pc.baslik);
@@ -323,14 +325,14 @@ const SAYFA = {
       goster("duraklatildi", k === "telefon" && D.pc.medyaDuraklat);
       // Kutular
       const mikAcik = a && a.mikAcik;
-      kutu("k-mik", mikAcik, mikAcik ? ({ on: "Açık", noDevice: "Sanal mikrofon yok", error: "Hata" }[D.pc.mik] || "Açılıyor…") : "Kapalı");
+      kutu("k-mik", mikAcik, mikAcik ? ({ on: T("Açık", "On"), noDevice: T("Sanal mikrofon yok", "No virtual mic"), error: T("Hata", "Error") }[D.pc.mik] || T("Açılıyor…", "Starting…")) : T("Kapalı", "Off"));
       const ms = document.getElementById("k-mik-s"); const mAd = mikAcik ? "mik" : "mikYok"; if (ms.dataset.s !== mAd) { ms.innerHTML = SIMGE[mAd]; ms.dataset.s = mAd; }
-      kutu("k-gecis", a && a.otomatikGecis, a && a.otomatikGecis ? "Açık" : "Kapalı");
-      kutu("k-eq", a && a.eqAcik, a && a.eqAcik ? eqAdi() : "Kapalı");
-      kutu("k-pcses", D.pc.pcSesiniKapat, D.pc.pcSesiniKapat ? "Açık" : "Kapalı");
+      kutu("k-gecis", a && a.otomatikGecis, a && a.otomatikGecis ? T("Açık", "On") : T("Kapalı", "Off"));
+      kutu("k-eq", a && a.eqAcik, a && a.eqAcik ? eqAdi() : T("Kapalı", "Off"));
+      kutu("k-pcses", D.pc.pcSesiniKapat, D.pc.pcSesiniKapat ? T("Açık", "On") : T("Kapalı", "Off"));
       goster("mik-not", !!mikAcik); goster("kablo-not", D.pc.mik === "noDevice");
       const s = st();
-      metin("alt-yazi", `≈ ${Math.round(toplamGecikme())} ms · ${Math.round((s.inputHz || 48000) / 1000)} kHz · kayıp %${kayipYuzde().toFixed(1)}`);
+      metin("alt-yazi", `≈ ${Math.round(toplamGecikme())} ms · ${Math.round((s.inputHz || 48000) / 1000)} kHz · ${EN ? `loss ${kayipYuzde().toFixed(1)}%` : `kayıp %${kayipYuzde().toFixed(1)}`}`);
       document.getElementById("alt-nokta").style.background = (s.underruns > 5 || kayipYuzde() > 1) ? "var(--turuncu)" : "var(--yesil)";
     },
     bagla: (el) => {
@@ -341,42 +343,42 @@ const SAYFA = {
     },
   },
 
-  ayarlar: { baslik: "Ayarlar", ciz: () => `
-    ${bolum("", satirGit("pc", "var(--mavi)", "Bilgisayar", "bilgisayar", "pcAd"))}
-    ${bolum("Ses", satirGit("ses", "var(--pembe)", "Ses", "ses", "sesYuzde") + satirGit("eq", "var(--indigo)", "Ekolayzer", "eq", "eqDurum") + satirGit("sure", "var(--teal)", "Gecikme", "gecikme", "gecikmeAd"))}
-    ${bolum("AirPods", satirGit("degis", "var(--turuncu)", "Otomatik Geçiş", "gecis", "gecisDurum") + satirGit("mik", "var(--kirmizi)", "Mikrofon", "mik", "mikDurum") + satirGit("kulak", "var(--gri)", "Gürültü Engelleme", "gurultu"))}
-    ${bolum("", satirGit("nabiz", "var(--yesil)", "Tanılama", "tanilama") + satirGit("bilgi", "var(--gri)", "Hakkında", "hakkinda"))}`,
+  ayarlar: { baslik: T("Ayarlar", "Settings"), ciz: () => `
+    ${bolum("", satirGit("pc", "var(--mavi)", T("Bilgisayar", "Computer"), "bilgisayar", "pcAd"))}
+    ${bolum(T("Ses", "Sound"), satirGit("ses", "var(--pembe)", T("Ses", "Sound"), "ses", "sesYuzde") + satirGit("eq", "var(--indigo)", T("Ekolayzer", "Equalizer"), "eq", "eqDurum") + satirGit("sure", "var(--teal)", T("Gecikme", "Latency"), "gecikme", "gecikmeAd"))}
+    ${bolum("AirPods", satirGit("degis", "var(--turuncu)", T("Otomatik Geçiş", "Auto Switching"), "gecis", "gecisDurum") + satirGit("mik", "var(--kirmizi)", T("Mikrofon", "Microphone"), "mik", "mikDurum") + satirGit("kulak", "var(--gri)", T("Gürültü Engelleme", "Noise Control"), "gurultu"))}
+    ${bolum("", satirGit("nabiz", "var(--yesil)", T("Tanılama", "Diagnostics"), "tanilama") + satirGit("bilgi", "var(--gri)", T("Hakkında", "About"), "hakkinda"))}`,
   },
 
-  ses: { baslik: "Ses", telGerek: true, ciz: () => `
+  ses: { baslik: T("Ses", "Sound"), telGerek: true, ciz: () => `
     <div style="height:18px"></div>
     <div class="liste"><div class="satir" style="flex-direction:column;align-items:stretch;padding:10px 14px">
-      <div style="display:flex;justify-content:space-between"><span>Bilgisayar sesi</span><span class="gr" style="color:var(--ikincil)" data-yaz="sesYuzde"></span></div>
+      <div style="display:flex;justify-content:space-between"><span>${T("Bilgisayar sesi", "Computer volume")}</span><span class="gr" style="color:var(--ikincil)" data-yaz="sesYuzde"></span></div>
       <div class="kaydir">${SIMGE.sesAz.replace('<svg', '<svg width="16" height="16"')}<input type="range" min="0" max="1" step="0.01" data-tel="ses">${SIMGE.ses.replace('<svg', '<svg width="20" height="20"')}</div></div></div>
-    <div class="bolum-not">Yalnız bilgisayardan gelen sesi etkiler. Genel ses düzeyi iPhone’un ses tuşlarıyla.</div>
+    <div class="bolum-not">${T("Yalnız bilgisayardan gelen sesi etkiler. Genel ses düzeyi iPhone’un ses tuşlarıyla.", "Only affects sound from the computer. Overall volume is on your iPhone's volume buttons.")}</div>
     <div style="height:18px"></div>
     <div class="liste">
       <div class="satir" style="flex-direction:column;align-items:stretch;padding:10px 14px">
-        <div style="display:flex;justify-content:space-between"><span>Denge</span><span class="gr" style="color:var(--ikincil)" data-yaz="denge"></span></div>
-        <div class="kaydir"><small>Sol</small><input type="range" min="-1" max="1" step="0.02" data-tel="denge" data-orta="1"><small>Sağ</small></div></div>
-      ${satirAnahtar("Mono ses", 'data-tel="mono"')}
+        <div style="display:flex;justify-content:space-between"><span>${T("Denge", "Balance")}</span><span class="gr" style="color:var(--ikincil)" data-yaz="denge"></span></div>
+        <div class="kaydir"><small>${T("Sol", "Left")}</small><input type="range" min="-1" max="1" step="0.02" data-tel="denge" data-orta="1"><small>${T("Sağ", "Right")}</small></div></div>
+      ${satirAnahtar(T("Mono ses", "Mono audio"), 'data-tel="mono"')}
     </div>
-    <div class="bolum-not">Mono, iki kulağa aynı sesi verir: tek AirPods taktığında hiçbir şey kaçmaz.</div>
-    ${bolum("", satirAnahtar("Bilgisayarın kendi sesi kapalı", 'data-pc="pcSesiniKapat"'), "Bağlıyken bilgisayarın hoparlörü ya da kulaklığı susar, ses yalnız AirPods’ta olur. AirPods kutuya girince ya da bağlantı bitince eski hâline döner.")}
-    <div class="bolum-bas">Ses yükseltici</div>
-    <div class="seg" data-seg="yukseltici"><button data-deger="kapali">Kapalı</button><button data-deger="hafif">Hafif</button><button data-deger="guclu">Güçlü</button></div>
-    <div class="bolum-not">Kısık konuşmaları yükseltir, ani patlamaları bastırır. Sessiz videolar ve gece dinlemesi için.</div>`,
+    <div class="bolum-not">${T("Mono, iki kulağa aynı sesi verir: tek AirPods taktığında hiçbir şey kaçmaz.", "Mono plays the same sound in both ears, so you miss nothing with a single AirPod in.")}</div>
+    ${bolum("", satirAnahtar(T("Bilgisayarın kendi sesi kapalı", "Mute the computer's own speakers"), 'data-pc="pcSesiniKapat"'), T("Bağlıyken bilgisayarın hoparlörü ya da kulaklığı susar, ses yalnız AirPods’ta olur. AirPods kutuya girince ya da bağlantı bitince eski hâline döner.", "While connected, the computer's speakers or headphones go quiet and the sound is only in your AirPods. It goes back to normal when the AirPods go in their case or you disconnect."))}
+    <div class="bolum-bas">${T("Ses yükseltici", "Volume booster")}</div>
+    <div class="seg" data-seg="yukseltici"><button data-deger="kapali">${T("Kapalı", "Off")}</button><button data-deger="hafif">${T("Hafif", "Light")}</button><button data-deger="guclu">${T("Güçlü", "Strong")}</button></div>
+    <div class="bolum-not">${T("Kısık konuşmaları yükseltir, ani patlamaları bastırır. Sessiz videolar ve gece dinlemesi için.", "Lifts quiet dialogue and tames sudden loud bits. For quiet videos and late-night listening.")}</div>`,
   },
 
-  eq: { baslik: "Ekolayzer", telGerek: true, ciz: () => `
-    ${bolum("", satirAnahtar("Ekolayzer", 'data-tel="eqAcik"'))}
+  eq: { baslik: T("Ekolayzer", "Equalizer"), telGerek: true, ciz: () => `
+    ${bolum("", satirAnahtar(T("Ekolayzer", "Equalizer"), 'data-tel="eqAcik"'))}
     <div style="height:18px"></div>
     <div class="kart"><svg class="egri" id="egri" viewBox="0 0 320 120" preserveAspectRatio="none" width="100%"></svg>
       <div class="bant-etiket"><span>32</span><span>64</span><span>125</span><span>250</span><span>500</span><span>1K</span><span>2K</span><span>4K</span><span>8K</span><span>16K</span></div></div>
-    <div id="ozel-bolum"><div class="bolum-bas">Özel ayar</div><div class="kart"><div class="dikeyler" id="dikeyler"></div>
-      <button class="satir tehlike" id="eq-sifirla" style="padding:0;min-height:36px"><span class="ad">Sıfırla</span></button></div>
-      <div class="bolum-not">±12 dB. Kırpılmayı önlemek için yükselttiğin kadar genel ses kendiliğinden biraz kısılır.</div></div>
-    <div class="bolum-bas">Hazır ayarlar</div><div class="liste" id="hazirlar"></div>`,
+    <div id="ozel-bolum"><div class="bolum-bas">${T("Özel ayar", "Custom")}</div><div class="kart"><div class="dikeyler" id="dikeyler"></div>
+      <button class="satir tehlike" id="eq-sifirla" style="padding:0;min-height:36px"><span class="ad">${T("Sıfırla", "Reset")}</span></button></div>
+      <div class="bolum-not">${T("±12 dB. Kırpılmayı önlemek için yükselttiğin kadar genel ses kendiliğinden biraz kısılır.", "±12 dB. To prevent clipping, the overall level drops a little as you boost.")}</div></div>
+    <div class="bolum-bas">${T("Hazır ayarlar", "Presets")}</div><div class="liste" id="hazirlar"></div>`,
     guncelle: () => {
       const a = A(); if (!a) return;
       const k = eqKazanclari();
@@ -389,7 +391,7 @@ const SAYFA = {
       const hl = document.getElementById("hazirlar");
       const imza = hazirlar().map(h => h.id).join();
       if (hl.dataset.i !== imza) {
-        hl.innerHTML = hazirlar().map(h => secim("eqHazir", h.id, esc(h.ad))).join("") + secim("eqHazir", "ozel", "Özel");
+        hl.innerHTML = hazirlar().map(h => secim("eqHazir", h.id, esc(h.ad))).join("") + secim("eqHazir", "ozel", T("Özel", "Custom"));
         hl.dataset.i = imza;
       }
       goster("ozel-bolum", a.eqHazir === "ozel");
@@ -407,100 +409,100 @@ const SAYFA = {
     },
   },
 
-  gecis: { baslik: "Otomatik Geçiş", telGerek: true, ciz: () => `
-    ${bolum("", satirAnahtar("Otomatik geçiş", 'data-tel="otomatikGecis"'), "iPhone’da bir video ya da müzik başlayınca AirPods ona geçer; bitince bilgisayarın sesi geri gelir.")}
+  gecis: { baslik: T("Otomatik Geçiş", "Auto Switching"), telGerek: true, ciz: () => `
+    ${bolum("", satirAnahtar(T("Otomatik geçiş", "Auto switching"), 'data-tel="otomatikGecis"'), T("iPhone’da bir video ya da müzik başlayınca AirPods ona geçer; bitince bilgisayarın sesi geri gelir.", "When a video or music starts on your iPhone, your AirPods switch to it. When it ends, the computer's sound comes back."))}
     <div data-goster="otomatikGecis">
-      ${bolum("iPhone sesi gelince bilgisayar", secim("gecisModu", "sustur", "Susar", "Yalnız iPhone duyulur.") + secim("gecisModu", "kis", "Kısılır", "Bilgisayar arka planda alçak sesle devam eder.") + secim("gecisModu", "karistir", "Karışır", "İkisi birlikte duyulur, geçiş yapılmaz.") +
-        `<div class="satir" data-goster-esit="gecisModu=kis"><span class="ad">Arka plan sesi</span><input type="range" min="0.05" max="0.6" step="0.01" data-tel="kisSeviyesi" style="max-width:150px"></div>`)}
-      ${bolum("", satirAnahtar("Bilgisayardaki medyayı duraklat", 'data-pc="medyaDuraklat"'), "YouTube, Spotify ya da film iPhone sesi çalarken duraklar, iPhone sesi bitince kaldığı yerden sürer.")}
-      <div class="bolum-bas">Geri dönüş</div>
-      <div class="seg" data-seg="donusGecikmesi"><button data-deger="0.3">Hemen</button><button data-deger="0.6">Kısa</button><button data-deger="1.5">Uzun</button></div>
+      ${bolum(T("iPhone sesi gelince bilgisayar", "When iPhone audio plays, the computer"), secim("gecisModu", "sustur", T("Susar", "Goes silent"), T("Yalnız iPhone duyulur.", "You only hear the iPhone.")) + secim("gecisModu", "kis", T("Kısılır", "Ducks"), T("Bilgisayar arka planda alçak sesle devam eder.", "The computer keeps playing quietly underneath.")) + secim("gecisModu", "karistir", T("Karışır", "Mixes"), T("İkisi birlikte duyulur, geçiş yapılmaz.", "You hear both. No switching.")) +
+        `<div class="satir" data-goster-esit="gecisModu=kis"><span class="ad">${T("Arka plan sesi", "Background level")}</span><input type="range" min="0.05" max="0.6" step="0.01" data-tel="kisSeviyesi" style="max-width:150px"></div>`)}
+      ${bolum("", satirAnahtar(T("Bilgisayardaki medyayı duraklat", "Pause media on the computer"), 'data-pc="medyaDuraklat"'), T("YouTube, Spotify ya da film iPhone sesi çalarken duraklar, iPhone sesi bitince kaldığı yerden sürer.", "YouTube, Spotify or a movie pauses while iPhone audio plays and picks up where it left off afterwards."))}
+      <div class="bolum-bas">${T("Geri dönüş", "Switch back")}</div>
+      <div class="seg" data-seg="donusGecikmesi"><button data-deger="0.3">${T("Hemen", "Instantly")}</button><button data-deger="0.6">${T("Kısa", "Short")}</button><button data-deger="1.5">${T("Uzun", "Long")}</button></div>
       <div style="height:12px"></div>
       <div class="liste"><div class="satir" style="flex-direction:column;align-items:stretch;padding:10px 14px">
-        <div style="display:flex;justify-content:space-between"><span>Geçiş yumuşaklığı</span><span class="gr" style="color:var(--ikincil)" data-yaz="gecisSuresi"></span></div>
+        <div style="display:flex;justify-content:space-between"><span>${T("Geçiş yumuşaklığı", "Crossfade")}</span><span class="gr" style="color:var(--ikincil)" data-yaz="gecisSuresi"></span></div>
         <input type="range" min="0.05" max="1" step="0.01" data-tel="gecisSuresi"></div></div>
-      <div class="bolum-not">Geri dönüş, iPhone sesi sustuktan sonra beklenen süre: Reels gibi art arda videolarda gidip gelmeyi önler.</div>
+      <div class="bolum-not">${T("Geri dönüş, iPhone sesi sustuktan sonra beklenen süre: Reels gibi art arda videolarda gidip gelmeyi önler.", "Switch back is how long to wait after the iPhone goes quiet, so back-to-back clips like Reels don't flip it back and forth.")}</div>
     </div>
-    ${bolum("", `<div class="satir"><span class="ayar-simge" style="background:var(--turuncu)">${SIMGE.el}</span><span class="ad" style="font-size:13.5px">iPhone’da müzik çalarken bilgisayara dönmek için AirPods’a bir kez bas: iPhone’daki müzik durur, bilgisayarın sesi hemen gelir.</span></div>`, "iOS, başka bir uygulamanın sesini arka plandan durdurmamıza izin vermiyor; bu yön senin dokunuşunla olur.")}`,
+    ${bolum("", `<div class="satir"><span class="ayar-simge" style="background:var(--turuncu)">${SIMGE.el}</span><span class="ad" style="font-size:13.5px">${T("iPhone’da müzik çalarken bilgisayara dönmek için AirPods’a bir kez bas: iPhone’daki müzik durur, bilgisayarın sesi hemen gelir.", "To get back to the computer while music plays on your iPhone, press your AirPods once: the iPhone music stops and the computer comes right back.")}</span></div>`, T("iOS, başka bir uygulamanın sesini arka plandan durdurmamıza izin vermiyor; bu yön senin dokunuşunla olur.", "iOS doesn't let an app stop another app's audio from the background, so this direction takes your tap."))}`,
   },
 
-  gecikme: { baslik: "Gecikme", telGerek: true, ciz: () => `
+  gecikme: { baslik: T("Gecikme", "Latency"), telGerek: true, ciz: () => `
     <div style="height:18px"></div>
     <div class="kart" style="text-align:center;padding:20px 14px 16px">
       <div class="buyuk-sayi"><span data-yaz="toplam"></span> <span style="font-size:24px">ms</span></div>
-      <div style="color:var(--ikincil);font-size:12.5px;margin-top:6px">bilgisayardan kulağa toplam gecikme</div>
-      <div class="parcalar"><div><b style="color:var(--teal)" data-yaz="ag"></b><small>Ağ</small></div><div><b style="color:var(--mavi)" data-yaz="tampon"></b><small>Tampon</small></div><div><b style="color:var(--indigo)" data-yaz="bt"></b><small>Bluetooth</small></div></div>
+      <div style="color:var(--ikincil);font-size:12.5px;margin-top:6px">${T("bilgisayardan kulağa toplam gecikme", "total delay from computer to ear")}</div>
+      <div class="parcalar"><div><b style="color:var(--teal)" data-yaz="ag"></b><small>${T("Ağ", "Network")}</small></div><div><b style="color:var(--mavi)" data-yaz="tampon"></b><small>${T("Tampon", "Buffer")}</small></div><div><b style="color:var(--indigo)" data-yaz="bt"></b><small>Bluetooth</small></div></div>
     </div>
-    ${bolum("", secim("gecikme", "enDusuk", "En düşük", "Oyun ve video için. Ağ zayıfsa tampon kendiliğinden büyür.") + secim("gecikme", "dengeli", "Dengeli", "Çoğu ev ağı için.") + secim("gecikme", "kararli", "Kararlı", "Müzik ve podcast için. Kalabalık ağda bile kesilmez."), "Tampon, ağın o anki durumuna göre kendini ayarlar.")}
-    ${bolum("Deneysel", satirAnahtar("Görüşme kipi", 'data-tel="gorusmeKipi"'), "En büyük pay Bluetooth’un. Görüşme kipinde AirPods telefon görüşmesindeki gibi bağlanır: gecikme belirgin düşer ama ses mono ve daha boğuk olur. Oyun ve dudak senkronu için.")}`,
+    ${bolum("", secim("gecikme", "enDusuk", T("En düşük", "Lowest"), T("Oyun ve video için. Ağ zayıfsa tampon kendiliğinden büyür.", "For games and video. On a weak network the buffer grows by itself.")) + secim("gecikme", "dengeli", T("Dengeli", "Balanced"), T("Çoğu ev ağı için.", "For most home networks.")) + secim("gecikme", "kararli", T("Kararlı", "Stable"), T("Müzik ve podcast için. Kalabalık ağda bile kesilmez.", "For music and podcasts. Holds up even on a busy network.")), T("Tampon, ağın o anki durumuna göre kendini ayarlar.", "The buffer adjusts itself to how the network is doing."))}
+    ${bolum(T("Deneysel", "Experimental"), satirAnahtar(T("Görüşme kipi", "Call mode"), 'data-tel="gorusmeKipi"'), T("En büyük pay Bluetooth’un. Görüşme kipinde AirPods telefon görüşmesindeki gibi bağlanır: gecikme belirgin düşer ama ses mono ve daha boğuk olur. Oyun ve dudak senkronu için.", "Bluetooth is the biggest share. In call mode, AirPods connect the way they do on a phone call: latency drops noticeably, but the sound turns mono and duller. For games and lip sync."))}`,
   },
 
-  mik: { baslik: "Mikrofon", telGerek: true, ciz: () => `
-    ${bolum("", satirAnahtar("AirPods mikrofonu", 'data-tel="mikAcik"'), "Açıkken AirPods telefon görüşmesi kipine geçer: konuşabilirsin ama dinlediğin sesin kalitesi düşer. İşin bitince kapat.")}
-    ${bolum("", satirAnahtar("Yüksek kalite", 'data-tel="mikYuksekKalite"') + satirAnahtar("Ses yalıtımı", 'data-tel="mikSesYalitimi"'), "Yüksek kalite, iOS 26 ve H2 çipli AirPods’ta (AirPods Pro 2, AirPods 4) kalite kaybını azaltır. Ses yalıtımı arka plan gürültüsünü ve yankıyı bastırır.")}
-    ${bolum("", `<div class="satir"><span class="ad">Bu bilgisayar</span><span class="deger" data-yaz="mikPC"></span></div>`)}
-    <div class="bolum-bas">Bilgisayarda bir kez</div>
+  mik: { baslik: T("Mikrofon", "Microphone"), telGerek: true, ciz: () => `
+    ${bolum("", satirAnahtar(T("AirPods mikrofonu", "AirPods microphone"), 'data-tel="mikAcik"'), T("Açıkken AirPods telefon görüşmesi kipine geçer: konuşabilirsin ama dinlediğin sesin kalitesi düşer. İşin bitince kapat.", "While it's on, AirPods switch to phone-call mode: you can talk, but what you're listening to sounds worse. Turn it off when you're done."))}
+    ${bolum("", satirAnahtar(T("Yüksek kalite", "High quality"), 'data-tel="mikYuksekKalite"') + satirAnahtar(T("Ses yalıtımı", "Voice isolation"), 'data-tel="mikSesYalitimi"'), T("Yüksek kalite, iOS 26 ve H2 çipli AirPods’ta (AirPods Pro 2, AirPods 4) kalite kaybını azaltır. Ses yalıtımı arka plan gürültüsünü ve yankıyı bastırır.", "High quality reduces the quality loss on iOS 26 with H2 AirPods (AirPods Pro 2, AirPods 4). Voice isolation cuts background noise and echo."))}
+    ${bolum("", `<div class="satir"><span class="ad">${T("Bu bilgisayar", "This computer")}</span><span class="deger" data-yaz="mikPC"></span></div>`)}
+    <div class="bolum-bas">${T("Bilgisayarda bir kez", "Once, on the computer")}</div>
     <div class="kart" style="padding:16px">
-      <div class="adim"><i>1</i><span>Ücretsiz VB-CABLE’ı kur ve bilgisayarı yeniden başlat.</span></div>
-      <div class="adim"><i>2</i><span>Discord, Zoom ya da Teams’te mikrofon olarak <b>CABLE Output</b>’u seç.</span></div>
-      <div class="adim"><i>3</i><span>Buradan mikrofonu aç. SyncYourPods sesi kendisi oraya verir.</span></div>
+      <div class="adim"><i>1</i><span>${T("Ücretsiz VB-CABLE’ı kur ve bilgisayarı yeniden başlat.", "Install the free VB-CABLE and restart the computer.")}</span></div>
+      <div class="adim"><i>2</i><span>${T("Discord, Zoom ya da Teams’te mikrofon olarak <b>CABLE Output</b>’u seç.", "In Discord, Zoom or Teams, pick <b>CABLE Output</b> as the microphone.")}</span></div>
+      <div class="adim"><i>3</i><span>${T("Buradan mikrofonu aç. SyncYourPods sesi kendisi oraya verir.", "Turn the mic on here. SyncYourPods sends your voice there by itself.")}</span></div>
     </div>
     <div style="height:12px"></div>
-    <div class="liste"><button class="satir mavi" id="vb"><span class="ad">VB-CABLE indirme sayfası</span>${SIMGE.baglanti.replace('<svg', '<svg width="16" height="16"')}</button></div>`,
+    <div class="liste"><button class="satir mavi" id="vb"><span class="ad">${T("VB-CABLE indirme sayfası", "VB-CABLE download page")}</span>${SIMGE.baglanti.replace('<svg', '<svg width="16" height="16"')}</button></div>`,
     bagla: (el) => { el.querySelector("#vb").onclick = () => yolla({ k: "ac", url: "https://vb-audio.com/Cable/" }); },
   },
 
-  bilgisayar: { baslik: "Bilgisayar", ciz: () => `
-    ${bolum("", `<div class="satir"><span class="ad">Ad</span><span class="deger" data-yaz="pcAd"></span></div><div class="satir"><span class="ad">Ses aygıtı</span><span class="deger" data-yaz="cihaz" style="max-width:180px;overflow:hidden;text-overflow:ellipsis"></span></div><div class="satir"><span class="ad">Bağlı iPhone</span><span class="deger" data-yaz="telAd"></span></div>`)}
-    ${bolum("", satirAnahtar("Windows açılınca başlat", 'data-pc="acilis"'))}
-    ${bolum("", `<button class="satir mavi" id="unut"><span class="ad">Eşlenmiş iPhone’ları unut</span></button><button class="satir mavi" id="gunluk"><span class="ad">Günlüğü aç</span></button><button class="satir mavi" id="site"><span class="ad">İndirme sayfası</span></button>`, "Unutulan iPhone bir dahaki bağlantıda yeniden izin ister.")}
-    ${bolum("", `<button class="satir tehlike" id="cik"><span class="ad">SyncYourPods’tan çık</span></button>`, "Çıkınca bilgisayarın sesi eski hâline döner.")}`,
+  bilgisayar: { baslik: T("Bilgisayar", "Computer"), ciz: () => `
+    ${bolum("", `<div class="satir"><span class="ad">${T("Ad", "Name")}</span><span class="deger" data-yaz="pcAd"></span></div><div class="satir"><span class="ad">${T("Ses aygıtı", "Audio device")}</span><span class="deger" data-yaz="cihaz" style="max-width:180px;overflow:hidden;text-overflow:ellipsis"></span></div><div class="satir"><span class="ad">${T("Bağlı iPhone", "Connected iPhone")}</span><span class="deger" data-yaz="telAd"></span></div>`)}
+    ${bolum("", satirAnahtar(T("Windows açılınca başlat", "Start with Windows"), 'data-pc="acilis"'))}
+    ${bolum("", `<button class="satir mavi" id="unut"><span class="ad">${T("Eşlenmiş iPhone’ları unut", "Forget paired iPhones")}</span></button><button class="satir mavi" id="gunluk"><span class="ad">${T("Günlüğü aç", "Open log")}</span></button><button class="satir mavi" id="site"><span class="ad">${T("İndirme sayfası", "Download page")}</span></button>`, T("Unutulan iPhone bir dahaki bağlantıda yeniden izin ister.", "A forgotten iPhone has to ask for permission again next time."))}
+    ${bolum("", `<button class="satir tehlike" id="cik"><span class="ad">${T("SyncYourPods’tan çık", "Quit SyncYourPods")}</span></button>`, T("Çıkınca bilgisayarın sesi eski hâline döner.", "When you quit, the computer's sound goes back to normal."))}`,
     bagla: (el) => {
-      el.querySelector("#unut").onclick = (e) => { yolla({ k: "unut" }); e.currentTarget.querySelector(".ad").textContent = "Unutuldu"; };
+      el.querySelector("#unut").onclick = (e) => { yolla({ k: "unut" }); e.currentTarget.querySelector(".ad").textContent = T("Unutuldu", "Forgotten"); };
       el.querySelector("#gunluk").onclick = () => yolla({ k: "gunluk" });
       el.querySelector("#site").onclick = () => yolla({ k: "ac", url: D.pc.site });
       el.querySelector("#cik").onclick = () => yolla({ k: "cikis" });
     },
   },
 
-  gurultu: { baslik: "Gürültü Engelleme", ciz: () => `
+  gurultu: { baslik: T("Gürültü Engelleme", "Noise Control"), ciz: () => `
     <div style="height:18px"></div>
     <div class="kart" style="display:flex;justify-content:space-around;padding:18px 8px">
-      ${[["Gürültü Engelleme", "kulaklik"], ["Uyarlanabilir", "kulak"], ["Ortam Sesi", "ses"]].map(([a, s]) => `<div style="text-align:center;width:90px"><div style="width:52px;height:52px;border-radius:50%;background:var(--dolgu);display:grid;place-items:center;margin:0 auto 8px">${SIMGE[s].replace('<svg', '<svg width="22" height="22"')}</div><small style="color:var(--ikincil);font-size:11px">${a}</small></div>`).join("")}
+      ${[[T("Gürültü Engelleme", "Noise Cancellation"), "kulaklik"], [T("Uyarlanabilir", "Adaptive"), "kulak"], [T("Ortam Sesi", "Transparency"), "ses"]].map(([a, s]) => `<div style="text-align:center;width:90px"><div style="width:52px;height:52px;border-radius:50%;background:var(--dolgu);display:grid;place-items:center;margin:0 auto 8px">${SIMGE[s].replace('<svg', '<svg width="22" height="22"')}</div><small style="color:var(--ikincil);font-size:11px">${a}</small></div>`).join("")}
     </div>
-    <div class="bolum-not">Dinleme kipi AirPods’un kendi ayarıdır. Apple bu ayarın başka uygulamalarca değiştirilmesine izin vermiyor; SyncYourPods sesi hangi kipte olursan ol aynen taşır.</div>
-    ${bolum("Kipi değiştirmek için", `<div class="satir"><span class="ad">AirPods’un sapını basılı tut.</span></div><div class="satir"><span class="ad">iPhone’da Kontrol Merkezi’nde ses kaydırıcısını basılı tut.</span></div><div class="satir"><span class="ad">iPhone Ayarları → AirPods’un adı.</span></div>`)}`,
+    <div class="bolum-not">${T("Dinleme kipi AirPods’un kendi ayarıdır. Apple bu ayarın başka uygulamalarca değiştirilmesine izin vermiyor; SyncYourPods sesi hangi kipte olursan ol aynen taşır.", "The listening mode belongs to your AirPods. Apple doesn't let other apps change it; SyncYourPods carries the sound the same way whichever mode you're in.")}</div>
+    ${bolum(T("Kipi değiştirmek için", "To change the mode"), `<div class="satir"><span class="ad">${T("AirPods’un sapını basılı tut.", "Press and hold the stem of your AirPods.")}</span></div><div class="satir"><span class="ad">${T("iPhone’da Kontrol Merkezi’nde ses kaydırıcısını basılı tut.", "On your iPhone, press and hold the volume slider in Control Center.")}</span></div><div class="satir"><span class="ad">${T("iPhone Ayarları → AirPods’un adı.", "iPhone Settings → your AirPods' name.")}</span></div>`)}`,
   },
 
-  tanilama: { baslik: "Tanılama", ciz: () => {
+  tanilama: { baslik: T("Tanılama", "Diagnostics"), ciz: () => {
     const s = (ad, yaz) => `<div class="satir"><span class="ad">${ad}</span><span class="deger gr" data-yaz="${yaz}"></span></div>`;
-    return `${bolum("Geçiş", s("Öncelikli ses ipucu", "ipucu") + s("Başka ses çalıyor", "diger") + s("Ses nerede", "nerede") + s("Kulaklık", "kulaklik"))}
-      ${bolum("Tampon", s("Durum", "tDurum") + s("Doluluk / hedef", "doluluk") + s("Ağ titreşimi", "titreme") + s("Saat kayması", "kayma") + s("Giriş hızı", "hiz"))}
-      ${bolum("Paketler", s("Alınan", "alinan") + s("Yedekten kurtarılan", "kurtarilan") + s("Kayıp (örtülen)", "kayip") + s("Geç gelen", "gec") + s("Boşalma", "bosalma") + s("Atlama", "atlama"))}
-      ${bolum("Çıkış", s("Rota", "rota") + s("Bluetooth + iOS", "bt") + s("Ağ gidiş-dönüş", "rtt") + s("PC ses aygıtı", "cihaz"))}`; } },
+    return `${bolum(T("Geçiş", "Switching"), s(T("Öncelikli ses ipucu", "Secondary audio hint"), "ipucu") + s(T("Başka ses çalıyor", "Other audio playing"), "diger") + s(T("Ses nerede", "Sound is on"), "nerede") + s(T("Kulaklık", "Headphones"), "kulaklik"))}
+      ${bolum(T("Tampon", "Buffer"), s(T("Durum", "State"), "tDurum") + s(T("Doluluk / hedef", "Fill / target"), "doluluk") + s(T("Ağ titreşimi", "Network jitter"), "titreme") + s(T("Saat kayması", "Clock drift"), "kayma") + s(T("Giriş hızı", "Input rate"), "hiz"))}
+      ${bolum(T("Paketler", "Packets"), s(T("Alınan", "Received"), "alinan") + s(T("Yedekten kurtarılan", "Recovered from spare"), "kurtarilan") + s(T("Kayıp (örtülen)", "Lost (concealed)"), "kayip") + s(T("Geç gelen", "Late"), "gec") + s(T("Boşalma", "Underruns"), "bosalma") + s(T("Atlama", "Skips"), "atlama"))}
+      ${bolum(T("Çıkış", "Output"), s(T("Rota", "Route"), "rota") + s("Bluetooth + iOS", "bt") + s(T("Ağ gidiş-dönüş", "Network round trip"), "rtt") + s(T("PC ses aygıtı", "PC audio device"), "cihaz"))}`; } },
 
-  hakkinda: { baslik: "Hakkında", ciz: () => `
+  hakkinda: { baslik: T("Hakkında", "About"), ciz: () => `
     <div style="height:24px"></div>
     <div class="uygulama-simge"><svg viewBox="0 0 48 48" width="46" height="46" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"><circle cx="24" cy="24" r="8.5"/><circle cx="24" cy="24" r="2.6" fill="#fff" stroke="none"/><path d="M13 16.5a13 13 0 0 0 0 15M35 16.5a13 13 0 0 1 0 15"/><path d="M8 12a20 20 0 0 0 0 24M40 12a20 20 0 0 1 0 24" stroke="rgba(255,255,255,.65)"/></svg></div>
     <div style="text-align:center;margin-top:12px"><div style="font-weight:700;font-size:18px">SyncYourPods</div><div style="color:var(--ikincil);font-size:13px" data-yaz="surum"></div></div>
-    <div class="bolum-not" style="text-align:center;padding-top:18px">Bluetooth’u olmayan bilgisayarın sesini, aynı ağdaki iPhone üzerinden AirPods’a taşır. Ses yalnız evinin ağında dolaşır; hiçbir sunucuya gitmez.</div>`,
+    <div class="bolum-not" style="text-align:center;padding-top:18px">${T("Bluetooth’u olmayan bilgisayarın sesini, aynı ağdaki iPhone üzerinden AirPods’a taşır. Ses yalnız evinin ağında dolaşır; hiçbir sunucuya gitmez.", "Brings your computer's sound to your AirPods through the iPhone on the same network. The audio stays on your home network and never goes to a server.")}</div>`,
   },
 };
 
 // Metin bağları
 const YAZ = {
-  pcAd: () => D ? D.pc.ad : "", cihaz: () => D ? D.pc.cihaz || "—" : "", telAd: () => D && D.telefonAdi || "Yok",
-  sesYuzde: () => A() ? "%" + Math.round(A().ses * 100) : "",
-  denge: () => { const v = A() ? A().denge : 0; return Math.abs(v) < 0.01 ? "Orta" : (v < 0 ? "Sol %" : "Sağ %") + Math.round(Math.abs(v) * 100); },
-  eqDurum: () => A() ? (A().eqAcik ? eqAdi() : "Kapalı") : "", gecikmeAd: () => A() ? GECIKME_AD[A().gecikme] || "" : "",
-  gecisDurum: () => A() ? (A().otomatikGecis ? "Açık" : "Kapalı") : "", mikDurum: () => A() ? (A().mikAcik ? "Açık" : "Kapalı") : "",
+  pcAd: () => D ? D.pc.ad : "", cihaz: () => D ? D.pc.cihaz || "—" : "", telAd: () => D && D.telefonAdi || T("Yok", "None"),
+  sesYuzde: () => A() ? (EN ? Math.round(A().ses * 100) + "%" : "%" + Math.round(A().ses * 100)) : "",
+  denge: () => { const v = A() ? A().denge : 0; const y = Math.round(Math.abs(v) * 100); return Math.abs(v) < 0.01 ? T("Orta", "Center") : EN ? (v < 0 ? "Left " : "Right ") + y + "%" : (v < 0 ? "Sol %" : "Sağ %") + y; },
+  eqDurum: () => A() ? (A().eqAcik ? eqAdi() : T("Kapalı", "Off")) : "", gecikmeAd: () => A() ? GECIKME_AD[A().gecikme] || "" : "",
+  gecisDurum: () => A() ? (A().otomatikGecis ? T("Açık", "On") : T("Kapalı", "Off")) : "", mikDurum: () => A() ? (A().mikAcik ? T("Açık", "On") : T("Kapalı", "Off")) : "",
   gecisSuresi: () => A() ? Math.round(A().gecisSuresi * 1000) + " ms" : "",
   toplam: () => Math.round(toplamGecikme()), ag: () => Math.round((st().rttMs || 0) / 2), tampon: () => Math.round(st().bufferMs || 0), bt: () => Math.round(st().btMs || 0),
-  mikPC: () => !bagli() ? "Bağlı değil" : ({ on: "Mikrofon alınıyor", noDevice: "VB-CABLE bulunamadı", error: "Hata" }[D.pc.mik] || (A() && A().mikAcik ? "Açılıyor…" : "Kapalı")),
-  ipucu: () => D && D.tel ? (D.tel.hint ? "Var" : "Yok") : "—", diger: () => D && D.tel ? (D.tel.other ? "Evet" : "Hayır") : "—",
-  nerede: () => ({ pc: "Bilgisayar", sessiz: "Bilgisayar", telefon: "iPhone", kutu: "Bilgisayar hoparlörü", yok: "—" }[kaynak()]),
-  kulaklik: () => !bagli() ? "—" : (D.kulaklik ? "Takılı" : "Kutuda"),
-  tDurum: () => ({ caliyor: "Çalıyor", doluyor: "Doluyor", bos: "Boş" }[st().state] || "—"),
+  mikPC: () => !bagli() ? T("Bağlı değil", "Not connected") : ({ on: T("Mikrofon alınıyor", "Receiving microphone"), noDevice: T("VB-CABLE bulunamadı", "VB-CABLE not found"), error: T("Hata", "Error") }[D.pc.mik] || (A() && A().mikAcik ? T("Açılıyor…", "Starting…") : T("Kapalı", "Off"))),
+  ipucu: () => D && D.tel ? (D.tel.hint ? T("Var", "Yes") : T("Yok", "No")) : "—", diger: () => D && D.tel ? (D.tel.other ? T("Evet", "Yes") : T("Hayır", "No")) : "—",
+  nerede: () => ({ pc: T("Bilgisayar", "Computer"), sessiz: T("Bilgisayar", "Computer"), telefon: "iPhone", kutu: T("Bilgisayar hoparlörü", "Computer speakers"), yok: "—" }[kaynak()]),
+  kulaklik: () => !bagli() ? "—" : (D.kulaklik ? T("Takılı", "In ears") : T("Kutuda", "In case")),
+  tDurum: () => ({ caliyor: T("Çalıyor", "Playing"), doluyor: T("Doluyor", "Filling"), bos: T("Boş", "Empty") }[st().state] || "—"),
   doluluk: () => `${Math.round(st().bufferMs || 0)} / ${Math.round(st().targetMs || 0)} ms`, titreme: () => (st().jitterMs || 0).toFixed(1) + " ms",
   kayma: () => ((st().driftPpm || 0) >= 0 ? "+" : "") + Math.round(st().driftPpm || 0) + " ppm", hiz: () => (st().inputHz || 0) + " Hz",
   alinan: () => st().received ?? "—", kurtarilan: () => st().recovered ?? "—", kayip: () => st().lost ?? "—", gec: () => st().late ?? "—",
@@ -517,8 +519,8 @@ function sayfaKur(ad) {
   const el = document.createElement("div");
   el.className = "sayfa"; el.dataset.ad = ad;
   const ust = ad === "ana"
-    ? `<div class="ust"><span class="sol" style="font-weight:600;font-size:15px;padding-left:6px">SyncYourPods</span><span></span><span class="sag-k"><button class="yuvarlak" data-git="ayarlar" title="Ayarlar">${SIMGE.disli.replace('<svg', '<svg width="20" height="20"')}</button></span></div>`
-    : `<div class="ust"><span class="sol"><button class="geri">${SIMGE.sol.replace('<svg', '<svg width="20" height="20"')}<span>${yigin.length > 1 ? SAYFA[yigin[yigin.length - 1].dataset.ad].baslik || "Geri" : "Geri"}</span></button></span><span class="baslik">${t.baslik}</span><span></span></div>`;
+    ? `<div class="ust"><span class="sol" style="font-weight:600;font-size:15px;padding-left:6px">SyncYourPods</span><span></span><span class="sag-k"><button class="yuvarlak" data-git="ayarlar" title="${T("Ayarlar", "Settings")}">${SIMGE.disli.replace('<svg', '<svg width="20" height="20"')}</button></span></div>`
+    : `<div class="ust"><span class="sol"><button class="geri">${SIMGE.sol.replace('<svg', '<svg width="20" height="20"')}<span>${yigin.length > 1 ? SAYFA[yigin[yigin.length - 1].dataset.ad].baslik || T("Geri", "Back") : T("Geri", "Back")}</span></button></span><span class="baslik">${t.baslik}</span><span></span></div>`;
   el.innerHTML = ust + `<div class="icerik">${t.ciz()}</div>`;
   const g = el.querySelector(".geri"); if (g) g.onclick = geri;
   el.addEventListener("click", tikla);
@@ -655,13 +657,13 @@ function baslat() {
   // Önizleme (tarayıcıda açılınca): örnek durum. ?sayfa=eq&durum=telefon|bekle|kutu
   const q = new URLSearchParams(location.search);
   const hal = q.get("durum") || "pc";
-  const hz = [["duz","Düz",[0,0,0,0,0,0,0,0,0,0]],["bas","Bas Güçlendirici",[6,5,4,2.5,1,0,0,0,0,0]],["basAzalt","Bas Azaltıcı",[-6,-5,-4,-2.5,-1,0,0,0,0,0]],["tiz","Tiz Güçlendirici",[0,0,0,0,0,.5,1.5,3,4.5,5.5]],["vokal","Vokal",[-2,-1.5,-1,.5,2.5,3.5,3,1.5,0,-1]],["podcast","Konuşma",[-6,-4,-2,0,2,3.5,3.5,2,0,-2]],["film","Film",[4,3,1.5,0,-.5,0,1.5,2.5,2,1]]].map(([id,ad,k])=>({id,ad,k}));
+  const hz = [["duz",T("Düz", "Flat"),[0,0,0,0,0,0,0,0,0,0]],["bas",T("Bas Güçlendirici", "Bass Booster"),[6,5,4,2.5,1,0,0,0,0,0]],["basAzalt",T("Bas Azaltıcı", "Bass Reducer"),[-6,-5,-4,-2.5,-1,0,0,0,0,0]],["tiz",T("Tiz Güçlendirici", "Treble Booster"),[0,0,0,0,0,.5,1.5,3,4.5,5.5]],["vokal",T("Vokal", "Vocal"),[-2,-1.5,-1,.5,2.5,3.5,3,1.5,0,-1]],["podcast",T("Konuşma", "Spoken Word"),[-6,-4,-2,0,2,3.5,3.5,2,0,-2]],["film",T("Film", "Movie"),[4,3,1.5,0,-.5,0,1.5,2.5,2,1]]].map(([id,ad,k])=>({id,ad,k}));
   const ornek = {
-    pc: { ad: "EFE-PC", cihaz: "Hoparlör (Realtek(R) Audio)", caliyor: true, baslik: "lofi hip hop radio – beats to relax/study to", sanatci: "Lofi Girl", uygulama: "Chrome", mik: "off", pcSesiniKapat: true, medyaDuraklat: true, acilis: true, surum: "1.1.0", site: "https://example.com" },
+    pc: { ad: "EFE-PC", cihaz: T("Hoparlör (Realtek(R) Audio)", "Speakers (Realtek(R) Audio)"), caliyor: true, baslik: "lofi hip hop radio – beats to relax/study to", sanatci: "Lofi Girl", uygulama: "Chrome", mik: "off", pcSesiniKapat: true, medyaDuraklat: true, acilis: true, surum: "1.1.0", site: "https://example.com" },
     telefonAdi: hal === "bekle" ? null : "iPhone", kulaklik: hal !== "kutu",
     tel: hal === "bekle" ? null : {
       settings: { ses: .8, denge: 0, mono: false, yukseltici: "kapali", eqAcik: q.get("sayfa") === "eq", eqHazir: q.get("ozel") ? "ozel" : "bas", eqOzel: [4,3,1,0,-1,0,1.5,3,2,1], otomatikGecis: true, gecisModu: "sustur", kisSeviyesi: .25, donusGecikmesi: .6, gecisSuresi: .25, gecikme: "enDusuk", gorusmeKipi: false, mikAcik: false, mikYuksekKalite: true, mikSesYalitimi: false },
-      route: { name: "Efe’nin AirPods Pro’su", headphones: hal !== "kutu", symbol: "airpodspro" }, focus: hal === "telefon" ? "phone" : "pc", hint: hal === "telefon", other: hal === "telefon",
+      route: { name: T("Efe’nin AirPods Pro’su", "Efe’s AirPods Pro"), headphones: hal !== "kutu", symbol: "airpodspro" }, focus: hal === "telefon" ? "phone" : "pc", hint: hal === "telefon", other: hal === "telefon",
       stats: { bufferMs: 18, targetMs: 20, jitterMs: 4.1, driftPpm: 37, inputHz: 48000, received: 18234, recovered: 41, lost: 2, late: 3, underruns: 0, skips: 0, state: "caliyor", btMs: 162, rttMs: 4, level: .4 },
       eqPresets: hz,
     },

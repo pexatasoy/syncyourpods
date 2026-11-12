@@ -6,7 +6,8 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
-  developmentLanguage: tr
+  # Varsayılan (yedek) dil İngilizce; Türkçe telefonda Türkçe. Arayüz metinleri kodda L("tr", "en").
+  developmentLanguage: en
 
 packages:
   Cekirdek:
@@ -24,13 +25,14 @@ targets:
     info:
       path: Destek/Info.plist
       properties:
-        CFBundleLocalizations: [tr]
+        CFBundleLocalizations: [en, tr]
         # Arka planda ses: PC sesi telefon kilitliyken de akar.
         UIBackgroundModes: [audio]
         # Bonjour: ağdaki PC'yi bulmak için (çoklu yayın yetkisi GEREKMEZ).
         NSBonjourServices: [_syncpods._tcp]
-        NSLocalNetworkUsageDescription: "Aynı ağdaki bilgisayarı bulup sesini AirPods’a taşımak için. Ses yalnız evinin ağında dolaşır."
-        NSMicrophoneUsageDescription: "AirPods mikrofonunu bilgisayardaki görüşmelerde kullanabilmen için. Yalnız mikrofonu açtığında dinlenir."
+        # Türkçesi SyncYourPods/tr.lproj/InfoPlist.strings içinde.
+        NSLocalNetworkUsageDescription: "To find your computer on the same network and bring its sound to your AirPods. The audio stays on your home network."
+        NSMicrophoneUsageDescription: "So you can use your AirPods microphone in calls on your computer. It only listens while you have the mic turned on."
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
     settings:

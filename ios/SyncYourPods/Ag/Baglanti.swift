@@ -94,11 +94,11 @@ final class Baglanti {
                 self.oku()
                 self.bildir(.hazir)
             case let .failed(e):
-                self.bitir("Bağlantı koptu (\(e.localizedDescription))")
+                self.bitir(L("Bağlantı koptu (\(e.localizedDescription))", "Connection dropped (\(e.localizedDescription))"))
             case let .waiting(e):
-                self.bitir("PC'ye ulaşılamıyor (\(e.localizedDescription))")
+                self.bitir(L("PC'ye ulaşılamıyor (\(e.localizedDescription))", "Can't reach the PC (\(e.localizedDescription))"))
             case .cancelled:
-                self.bitir("Bağlantı kapandı")
+                self.bitir(L("Bağlantı kapandı", "Connection closed"))
             default:
                 break
             }
@@ -114,7 +114,7 @@ final class Baglanti {
         kuyruk.async {
             guard !self.bitti else { return }
             self.gonder(.bye)
-            self.kuyruk.asyncAfter(deadline: .now() + 0.15) { self.bitir("Bağlantı kesildi") }
+            self.kuyruk.asyncAfter(deadline: .now() + 0.15) { self.bitir(L("Bağlantı kesildi", "Disconnected")) }
         }
     }
 
@@ -142,7 +142,7 @@ final class Baglanti {
                 if let m = Mesaj.coz(satir) { self.isle(m) }
             }
             if tamam || hata != nil {
-                self.bitir("PC bağlantıyı kapattı")
+                self.bitir(L("PC bağlantıyı kapattı", "The PC closed the connection"))
             } else {
                 self.oku()
             }
@@ -189,7 +189,7 @@ final class Baglanti {
             self.punch()
             if adim % 2 == 0 { self.gonder(.ping(ts: Self.ms())) }
             if Date().timeIntervalSince(self.sonPong) > 6 {
-                self.bitir("PC yanıt vermiyor")
+                self.bitir(L("PC yanıt vermiyor", "The PC isn't responding"))
             }
         }
         z.resume()
